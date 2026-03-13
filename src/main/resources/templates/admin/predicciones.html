@@ -2,27 +2,65 @@
 <html xmlns:th="http://www.thymeleaf.org"
       th:replace="~{fragments/admin-layout :: layout(~{::title}, ~{::main}, 'predicciones')}">
 <head>
-    <title>Predicciones — Furent Admin</title>
+    <title>Predicciones Avanzadas — Furent Admin</title>
 </head>
 <body>
 <main>
     <div class="px-10 py-8 max-w-[90rem] mx-auto">
-        <div class="flex items-center justify-between mb-10">
+        
+        <!-- Header & Filters -->
+        <div class="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10">
             <div>
                 <h1 class="text-3xl font-extrabold tracking-tight text-surface-900">Modelo Predictivo de Demanda</h1>
                 <p class="text-sm text-surface-500 mt-1">
-                    Proyección sencilla de demanda de mobiliario (unidades reservadas) basada en los últimos 60 días de reservas.
+                    Análisis de tendencias y proyecciones basadas en un modelo de media móvil.
                 </p>
             </div>
+            
+            <form id="filterForm" class="flex flex-wrap items-end gap-3 bg-white p-3 rounded-2xl shadow-sm border border-surface-200">
+                <div>
+                    <label class="block text-[10px] font-bold text-surface-400 uppercase tracking-widest pl-1 mb-1">Histórico</label>
+                    <select name="h" onchange="this.form.submit()" class="pl-4 pr-8 py-2 bg-surface-50 border border-surface-200 rounded-xl text-sm font-medium text-surface-700 focus:ring-2 focus:ring-furent-500/30 w-full sm:w-auto">
+                        <option value="15" th:selected="${h == 15}">Últimos 15 días</option>
+                        <option value="30" th:selected="${h == 30}">Últimos 30 días</option>
+                        <option value="60" th:selected="${h == 60}">Últimos 60 días</option>
+                        <option value="90" th:selected="${h == 90}">Últimos 90 días</option>
+                        <option value="180" th:selected="${h == 180}">Últimos 6 meses</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-[10px] font-bold text-surface-400 uppercase tracking-widest pl-1 mb-1">Proyección</label>
+                    <select name="f" onchange="this.form.submit()" class="pl-4 pr-8 py-2 bg-surface-50 border border-surface-200 rounded-xl text-sm font-medium text-surface-700 focus:ring-2 focus:ring-furent-500/30 w-full sm:w-auto">
+                        <option value="7" th:selected="${f == 7}">Próximos 7 días</option>
+                        <option value="14" th:selected="${f == 14}">Próximos 14 días</option>
+                        <option value="30" th:selected="${f == 30}">Próximo mes</option>
+                    </select>
+                </div>
+            </form>
         </div>
 
+        <!-- Metric Tabs -->
+        <div class="flex border-b border-surface-200 mb-8 overflow-x-auto hide-scrollbar">
+            <button onclick="switchMetric('unidades')" id="tab-unidades" class="metric-tab whitespace-nowrap px-6 py-4 border-b-2 font-medium text-sm transition-colors border-furent-500 text-furent-600">
+                Unidades Reservadas
+            </button>
+            <button onclick="switchMetric('ingresos')" id="tab-ingresos" class="metric-tab whitespace-nowrap px-6 py-4 border-b-2 border-transparent font-medium text-sm text-surface-500 hover:text-surface-700 transition-colors">
+                Ingresos Estimados
+            </button>
+            <button onclick="switchMetric('reservas')" id="tab-reservas" class="metric-tab whitespace-nowrap px-6 py-4 border-b-2 border-transparent font-medium text-sm text-surface-500 hover:text-surface-700 transition-colors">
+                Cantidad de Reservas
+            </button>
+        </div>
+
+        <!-- Chart Section -->
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-10">
+            <!-- Main Chart -->
             <div class="lg:col-span-2 bg-white rounded-3xl p-8 shadow-sm border border-surface-200">
                 <div class="flex items-center justify-between mb-6">
                     <div>
-                        <h2 class="text-lg font-bold text-surface-900">Demanda histórica vs proyección</h2>
+                        <h2 id="chartTitle" class="text-lg font-bold text-surface-900">Demanda histórica vs proyección</h2>
                         <p class="text-xs text-surface-500 font-medium">
-                            Serie diaria agregada; la línea punteada representa la estimación.
+                            Serie diaria, la línea punteada representa la proyección futura (MA7).
                         </p>
                     </div>
                     <div class="flex items-center gap-3 text-[10px] font-bold uppercase tracking-widest">
@@ -30,46 +68,54 @@
                             <span class="w-3 h-0.5 bg-furent-500 rounded-full"></span> Histórico
                         </span>
                         <span class="flex items-center gap-1 text-surface-500">
-                            <span class="w-3 h-0.5 border border-dashed border-surface-400 rounded-full"></span> Proyección
+                            <span class="w-3 h-0.5 border border-dashed border-surface-400 rounded-full"></span> Predicción
                         </span>
                     </div>
                 </div>
-                <div class="h-[320px] w-full">
+                <div class="h-[350px] w-full">
                     <canvas id="forecastChart"></canvas>
                 </div>
             </div>
 
+            <!-- Summaries Sidebar -->
             <div class="space-y-4">
-                <div class="bg-white rounded-3xl p-6 shadow-sm border border-surface-200">
+                <div class="bg-white rounded-3xl p-6 shadow-sm border border-surface-200" id="summaryBox">
                     <h3 class="text-xs font-bold text-surface-500 uppercase tracking-widest mb-4">
-                        Resumen de proyección (14 días)
+                        Resumen <span th:text="${f}"></span> días futuros
                     </h3>
-                    <div class="space-y-3 text-sm">
-                        <div class="flex items-center justify-between">
-                            <span class="text-surface-500 font-medium">Unidades esperadas</span>
-                            <span class="text-base font-extrabold text-furent-600"
-                                  th:text="${#numbers.formatInteger(#aggregates.sum(forecastData.values()), 1, 'POINT')}">
-                                0
-                            </span>
+                    <div class="space-y-4 text-sm">
+                        <!-- Total -->
+                        <div>
+                            <p class="text-surface-500 font-medium mb-1" id="sumTitle">Total proyectado</p>
+                            <p class="text-2xl font-extrabold text-furent-600" id="sumTotal">0</p>
                         </div>
-                        <div class="flex items-center justify-between">
-                            <span class="text-surface-500 font-medium">Promedio diario estimado</span>
-                            <span class="text-sm font-bold text-surface-900"
-                                  th:text="${#numbers.formatInteger(#aggregates.sum(forecastData.values()) / (forecastData.size() == 0 ? 1 : forecastData.size()), 1, 'POINT')}">
-                                0
-                            </span>
+                        
+                        <!-- Avg -->
+                        <div class="pt-4 border-t border-surface-100">
+                            <p class="text-surface-500 font-medium mb-1" id="avgTitle">Promedio diario</p>
+                            <p class="text-lg font-bold text-surface-900" id="sumAvg">0</p>
+                        </div>
+                        
+                        <!-- Trend (Comparing last f days vs next f days) -->
+                        <div class="pt-4 border-t border-surface-100">
+                            <p class="text-surface-500 font-medium mb-1">Tendencia vs periodo anterior</p>
+                            <div class="flex items-center gap-2" id="sumTrend">
+                                <span class="inline-flex items-center px-2 py-1 rounded border border-surface-200 text-surface-600 font-semibold text-xs">--</span>
+                            </div>
                         </div>
                     </div>
                 </div>
 
                 <div class="bg-surface-900 rounded-3xl p-6 border border-surface-800 text-white">
-                    <h3 class="text-xs font-bold text-surface-400 uppercase tracking-widest mb-3">
-                        Notas del modelo
+                    <h3 class="text-xs font-bold text-surface-400 uppercase tracking-widest mb-3 flex items-center gap-2">
+                        <svg class="w-4 h-4 text-furent-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        Info del Modelo
                     </h3>
                     <p class="text-xs text-surface-300 leading-relaxed">
-                        Este modelo usa una media móvil simple sobre los últimos 7 días de unidades reservadas
-                        para estimar la demanda de los siguientes 14 días. Es una guía rápida para logística y stock,
-                        no una predicción estadística avanzada.
+                        Este modelo predictivo utiliza técnicas de suavizado rápido (Media Móvil de 7 días, MA7) 
+                        para identificar patrones de demanda a corto plazo y extrapolar tendencias.
+                        <br><br>
+                        Ayuda a anticipar cargas de trabajo de logística y posibles cuellos de botella de inventario en fechas futuras de alto tráfico.
                     </p>
                 </div>
             </div>
@@ -77,24 +123,121 @@
 
         <script th:inline="javascript">
             /*<![CDATA[*/
-            document.addEventListener('DOMContentLoaded', function () {
-                const historyData = /*[[${historyData}]]*/ {};
-                const forecastData = /*[[${forecastData}]]*/ {};
+            
+            // Raw Data Objects from Model
+            const dataSets = {
+                'unidades': {
+                    history: /*[[${historyUnidades}]]*/ {},
+                    forecast: /*[[${forecastUnidades}]]*/ {},
+                    prefix: '', suffix: ' uds', decimals: 0, title: 'Unidades Reservadas'
+                },
+                'ingresos': {
+                    history: /*[[${historyIngresos}]]*/ {},
+                    forecast: /*[[${forecastIngresos}]]*/ {},
+                    prefix: '$', suffix: '', decimals: 0, title: 'Ingresos Proyectados'
+                },
+                'reservas': {
+                    history: /*[[${historyReservas}]]*/ {},
+                    forecast: /*[[${forecastReservas}]]*/ {},
+                    prefix: '', suffix: ' reservas', decimals: 0, title: 'Cantidad de Reservas'
+                }
+            };
 
-                const historyLabels = Object.keys(historyData);
-                const historyValues = Object.values(historyData);
+            const forecastDays = parseInt(/*[[${f}]]*/ 14);
+            let currentChart = null;
 
-                const forecastLabels = Object.keys(forecastData);
-                const forecastValues = Object.values(forecastData);
+            function formatNumber(num, decimals = 0, prefix = '', suffix = '') {
+                return prefix + Number(num).toLocaleString('en-US', { minimumFractionDigits: decimals, maximumFractionDigits: decimals }) + suffix;
+            }
 
-                const labels = historyLabels.concat(forecastLabels);
-                const historyLength = historyLabels.length;
+            function safeObj(obj) {
+                return obj ? obj : {};
+            }
+
+            function sumObj(obj, limit = 0) {
+                let safe = safeObj(obj);
+                let vals = Object.values(safe);
+                if (limit > 0) vals = vals.slice(-limit);
+                return vals.reduce((a, b) => Number(a) + Number(b), 0);
+            }
+
+            function updateSummary(metricKey) {
+                const conf = dataSets[metricKey];
+                const forecastData = safeObj(conf.forecast);
+                const historyData = safeObj(conf.history);
+                
+                // Forecast (next f days)
+                const fTotal = sumObj(forecastData);
+                const fKeysLen = Object.keys(forecastData).length;
+                const fAvg = fKeysLen > 0 ? fTotal / fKeysLen : 0;
+                
+                // Recent History (last f days)
+                const hTotalRecent = sumObj(historyData, forecastDays);
+                
+                document.getElementById('sumTotal').innerHTML = formatNumber(fTotal, conf.decimals, conf.prefix, conf.suffix);
+                document.getElementById('sumAvg').innerHTML = formatNumber(fAvg, 1, conf.prefix, conf.suffix);
+                
+                // Trend calculation
+                const trendContainer = document.getElementById('sumTrend');
+                if (hTotalRecent <= 0 && fTotal > 0) {
+                    trendContainer.innerHTML = `<span class="inline-flex items-center px-2 py-1 rounded bg-green-50 border border-green-200 text-green-700 font-semibold text-xs">+100% ↗</span>`;
+                } else if (hTotalRecent <= 0 && fTotal <= 0) {
+                    trendContainer.innerHTML = `<span class="inline-flex items-center px-2 py-1 rounded border border-surface-200 text-surface-600 font-semibold text-xs">0% </span>`;
+                } else {
+                    const perc = ((fTotal - hTotalRecent) / hTotalRecent) * 100;
+                    if (perc > 0) {
+                        trendContainer.innerHTML = `<span class="inline-flex items-center gap-1 px-2 py-1 rounded bg-green-50 border border-green-200 text-green-700 font-semibold text-xs">+${perc.toFixed(1)}% <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg></span>`;
+                    } else if (perc < 0) {
+                        trendContainer.innerHTML = `<span class="inline-flex items-center gap-1 px-2 py-1 rounded bg-red-50 border border-red-200 text-red-700 font-semibold text-xs">${perc.toFixed(1)}% <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6"></path></svg></span>`;
+                    } else {
+                        trendContainer.innerHTML = `<span class="inline-flex items-center gap-1 px-2 py-1 rounded border border-surface-200 text-surface-600 font-semibold text-xs">0% <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14"></path></svg></span>`;
+                    }
+                }
+            }
+
+            window.switchMetric = function(metricKey) {
+                // Update UI tabs
+                document.querySelectorAll('.metric-tab').forEach(el => {
+                    el.classList.remove('border-furent-500', 'text-furent-600');
+                    el.classList.add('border-transparent', 'text-surface-500');
+                });
+                const activeTab = document.getElementById('tab-' + metricKey);
+                if (activeTab) {
+                    activeTab.classList.remove('border-transparent', 'text-surface-500');
+                    activeTab.classList.add('border-furent-500', 'text-furent-600');
+                }
+
+                // Update text
+                const conf = dataSets[metricKey];
+                document.getElementById('chartTitle').innerText = conf.title;
+                updateSummary(metricKey);
+
+                const historyData = safeObj(conf.history);
+                const forecastData = safeObj(conf.forecast);
+
+                const hLabels = Object.keys(historyData);
+                const hValues = Object.values(historyData);
+                const fLabels = Object.keys(forecastData);
+                const fValues = Object.values(forecastData);
+                
+                const labels = hLabels.concat(fLabels);
+                
+                // Color depending on metric
+                let strokeColor = '#E07A3A'; // Furent orange
+                let bgColor = 'rgba(224, 122, 58, 0.08)';
+                if (metricKey === 'ingresos') {
+                    strokeColor = '#10b981'; // Green
+                    bgColor = 'rgba(16, 185, 129, 0.08)';
+                } else if (metricKey === 'reservas') {
+                    strokeColor = '#6366f1'; // Indigo
+                    bgColor = 'rgba(99, 102, 241, 0.08)';
+                }
 
                 const historyDataset = {
                     label: 'Histórico',
-                    data: historyValues,
-                    borderColor: '#E07A3A',
-                    backgroundColor: 'rgba(224, 122, 58, 0.08)',
+                    data: hValues,
+                    borderColor: strokeColor,
+                    backgroundColor: bgColor,
                     borderWidth: 3,
                     tension: 0.35,
                     pointRadius: 0,
@@ -103,8 +246,8 @@
 
                 const forecastDataset = {
                     label: 'Proyección',
-                    data: new Array(historyLength).fill(null).concat(forecastValues),
-                    borderColor: '#6b7280',
+                    data: new Array(hLabels.length).fill(null).concat(fValues),
+                    borderColor: '#9ca3af',
                     borderDash: [6, 4],
                     backgroundColor: 'transparent',
                     borderWidth: 2,
@@ -112,61 +255,78 @@
                     pointRadius: 0
                 };
 
-                const ctx = document.getElementById('forecastChart');
-                if (!ctx) return;
-
-                new Chart(ctx, {
-                    type: 'line',
-                    data: {
-                        labels: labels,
-                        datasets: [historyDataset, forecastDataset]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: {
-                            legend: {
-                                display: false
+                if (currentChart) {
+                    currentChart.data.labels = labels;
+                    currentChart.data.datasets = [historyDataset, forecastDataset];
+                    currentChart.options.plugins.tooltip.callbacks.label = function(ctx) {
+                        if (ctx.parsed.y == null) return '';
+                        return formatNumber(ctx.parsed.y, conf.decimals, conf.prefix, conf.suffix);
+                    };
+                    currentChart.options.scales.y.ticks.callback = function(val) {
+                        if (val >= 1000 && metricKey === 'ingresos') return '$' + (val/1000).toFixed(0) + 'k';
+                        return formatNumber(val, 0, conf.prefix, '');
+                    };
+                    currentChart.update();
+                } else {
+                    const ctx = document.getElementById('forecastChart');
+                    if (ctx) {
+                        currentChart = new Chart(ctx, {
+                            type: 'line',
+                            data: {
+                                labels: labels,
+                                datasets: [historyDataset, forecastDataset]
                             },
-                            tooltip: {
-                                backgroundColor: '#18181b',
-                                titleFont: {family: 'Outfit', size: 12},
-                                bodyFont: {family: 'Outfit', size: 13, weight: 'bold'},
-                                padding: 10,
-                                cornerRadius: 10,
-                                displayColors: false,
-                                callbacks: {
-                                    label: function (ctx) {
-                                        if (ctx.parsed.y == null) return '';
-                                        return ctx.parsed.y.toLocaleString() + ' unidades';
+                            options: {
+                                responsive: true,
+                                maintainAspectRatio: false,
+                                interaction: {
+                                    mode: 'index',
+                                    intersect: false,
+                                },
+                                plugins: {
+                                    legend: { display: false },
+                                    tooltip: {
+                                        backgroundColor: '#18181b',
+                                        titleFont: {family: 'Outfit', size: 12},
+                                        bodyFont: {family: 'Outfit', size: 13, weight: 'bold'},
+                                        padding: 10,
+                                        cornerRadius: 10,
+                                        displayColors: true,
+                                        callbacks: {
+                                            label: function (ctx) {
+                                                if (ctx.parsed.y == null) return '';
+                                                return ctx.dataset.label + ': ' + formatNumber(ctx.parsed.y, conf.decimals, conf.prefix, conf.suffix);
+                                            }
+                                        }
+                                    }
+                                },
+                                scales: {
+                                    x: {
+                                        ticks: { font: {family: 'Outfit', size: 10}, color: '#9ca3af', maxRotation: 45, minRotation: 45 },
+                                        grid: { display: false }
+                                    },
+                                    y: {
+                                        beginAtZero: true,
+                                        ticks: {
+                                            font: {family: 'Outfit', size: 11},
+                                            color: '#9ca3af',
+                                            callback: function (val) {
+                                                if (val >= 1000 && metricKey === 'ingresos') return '$' + (val/1000).toFixed(0) + 'k';
+                                                return formatNumber(val, 0, conf.prefix, '');
+                                            }
+                                        },
+                                        grid: { color: '#f3f4f6' }
                                     }
                                 }
                             }
-                        },
-                        scales: {
-                            x: {
-                                ticks: {
-                                    font: {family: 'Outfit', size: 10},
-                                    color: '#9ca3af',
-                                    maxRotation: 45,
-                                    minRotation: 45
-                                },
-                                grid: {display: false}
-                            },
-                            y: {
-                                beginAtZero: true,
-                                ticks: {
-                                    font: {family: 'Outfit', size: 11},
-                                    color: '#9ca3af',
-                                    callback: function (value) {
-                                        return value.toLocaleString();
-                                    }
-                                },
-                                grid: {color: '#e5e7eb'}
-                            }
-                        }
+                        });
                     }
-                });
+                }
+            };
+
+            // Init based on default tab
+            document.addEventListener('DOMContentLoaded', function () {
+                switchMetric('unidades');
             });
             /*]]>*/
         </script>

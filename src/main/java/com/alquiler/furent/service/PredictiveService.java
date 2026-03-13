@@ -26,62 +26,80 @@ public class PredictiveService {
     }
 
     /**
-     * Genera una serie histórica y una proyección simple de demanda diaria de mobiliario.
-     * La métrica utilizada es el total de unidades reservadas por día
-     * (suma de cantidades de todos los items de reservas activas).
-     *
-     * @param historyDays  número de días hacia atrás a considerar (incluye hoy)
-     * @param forecastDays número de días futuros a proyectar
-     * @return mapa con dos entradas:
-     *  - history: LinkedHashMap&lt;String, BigDecimal&gt; fecha ISO → unidades
-     *  - forecast: LinkedHashMap&lt;String, BigDecimal&gt; fecha ISO → unidades estimadas
+     * Genera una serie histórica y proyecciones para:
+     * - unidades (suma de cantidades de todos los items)
+     * - ingresos (suma del total de las reservas)
+     * - reservas (cantidad de reservas)
      */
-    public Map<String, Object> generateRevenueForecast(int historyDays, int forecastDays) {
-        if (historyDays <= 0) {
-            throw new IllegalArgumentException("historyDays debe ser mayor a 0");
-        }
-        if (forecastDays <= 0) {
-            throw new IllegalArgumentException("forecastDays debe ser mayor a 0");
-        }
+    public Map<String, Object> generateForecasts(int historyDays, int forecastDays) {
+        if (historyDays <= 0) historyDays = 60;
+        if (forecastDays <= 0) forecastDays = 14;
 
         LocalDate today = LocalDate.now();
         LocalDate from = today.minusDays(historyDays - 1L);
 
-        // Tomamos todas las reservas y filtramos por rango y estados relevantes
-        List<Reservation> reservas = reservationRepository.findAll();
+        List<Reservation> todasReservas = reservationRepository.findAll();
 
-        Map<LocalDate, BigDecimal> agregados = new LinkedHashMap<>();
+        Map<LocalDate, BigDecimal> agregadosUnidades = new LinkedHashMap<>();
+        Map<LocalDate, BigDecimal> agregadosIngresos = new LinkedHashMap<>();
+        Map<LocalDate, BigDecimal> agregadosReservas = new LinkedHashMap<>();
+
         for (int i = 0; i < historyDays; i++) {
             LocalDate d = from.plusDays(i);
-            agregados.put(d, BigDecimal.ZERO);
+            agregadosUnidades.put(d, BigDecimal.ZERO);
+            agregadosIngresos.put(d, BigDecimal.ZERO);
+            agregadosReservas.put(d, BigDecimal.ZERO);
         }
 
-        for (Reservation r : reservas) {
-            if (r.getFechaInicio() == null || r.getItems() == null || r.getItems().isEmpty()) {
-                continue;
-            }
+        for (Reservation r : todasReservas) {
+            if (r.getFechaInicio() == null || r.getItems() == null || r.getItems().isEmpty()) continue;
             LocalDate dia = r.getFechaInicio();
-            if (dia.isBefore(from) || dia.isAfter(today)) {
-                continue;
-            }
+            if (dia.isBefore(from) || dia.isAfter(today)) continue;
+
+            // Unidades
             BigDecimal totalUnidades = r.getItems().stream()
                     .map(item -> BigDecimal.valueOf(item.getCantidad()))
                     .reduce(BigDecimal.ZERO, BigDecimal::add);
-            agregados.put(dia, agregados.getOrDefault(dia, BigDecimal.ZERO).add(totalUnidades));
+            agregadosUnidades.put(dia, agregadosUnidades.get(dia).add(totalUnidades));
+
+            // Ingresos
+            BigDecimal ingresos = r.getTotal() != null ? r.getTotal() : BigDecimal.ZERO;
+            agregadosIngresos.put(dia, agregadosIngresos.get(dia).add(ingresos));
+
+            // Reservas count
+            agregadosReservas.put(dia, agregadosReservas.get(dia).add(BigDecimal.ONE));
         }
 
-        // Serie histórica completa (incluyendo días en cero)
+        Map<String, Object> result = new LinkedHashMap<>();
+        
+        result.put("history_unidades", convertToStringMap(agregadosUnidades, historyDays, from, 0));
+        result.put("forecast_unidades", createForecast(agregadosUnidades, forecastDays, today, 0));
+        
+        result.put("history_ingresos", convertToStringMap(agregadosIngresos, historyDays, from, 2));
+        result.put("forecast_ingresos", createForecast(agregadosIngresos, forecastDays, today, 2));
+        
+        result.put("history_reservas", convertToStringMap(agregadosReservas, historyDays, from, 0));
+        result.put("forecast_reservas", createForecast(agregadosReservas, forecastDays, today, 0));
+        
+        return result;
+    }
+
+    private LinkedHashMap<String, BigDecimal> convertToStringMap(Map<LocalDate, BigDecimal> agregados, int historyDays, LocalDate from, int scale) {
         LinkedHashMap<String, BigDecimal> history = new LinkedHashMap<>();
         for (int i = 0; i < historyDays; i++) {
             LocalDate d = from.plusDays(i);
             BigDecimal value = agregados.getOrDefault(d, BigDecimal.ZERO);
-            history.put(d.toString(), value.setScale(0, RoundingMode.HALF_UP));
+            history.put(d.toString(), value.setScale(scale, RoundingMode.HALF_UP));
         }
+        return history;
+    }
 
-        // Proyección usando media móvil de ventana 7 (o menos si no hay suficientes datos)
+    private LinkedHashMap<String, BigDecimal> createForecast(Map<LocalDate, BigDecimal> agregados, int forecastDays, LocalDate today, int scale) {
         LinkedHashMap<String, BigDecimal> forecast = new LinkedHashMap<>();
         int window = 7;
-        BigDecimal[] series = history.values().toArray(new BigDecimal[0]);
+        
+        // Convert to array in chronological order (assuming agregados is already ordered, but let's be safe)
+        BigDecimal[] series = agregados.values().toArray(new BigDecimal[0]);
 
         for (int i = 0; i < forecastDays; i++) {
             int count = Math.min(window, series.length + i);
@@ -104,15 +122,11 @@ public class PredictiveService {
                 }
             }
 
-            BigDecimal avg = count > 0 ? sum.divide(BigDecimal.valueOf(count), 0, RoundingMode.HALF_UP) : BigDecimal.ZERO;
+            BigDecimal avg = count > 0 ? sum.divide(BigDecimal.valueOf(count), scale, RoundingMode.HALF_UP) : BigDecimal.ZERO;
             LocalDate futureDate = today.plusDays(i + 1L);
             forecast.put(futureDate.toString(), avg.max(BigDecimal.ZERO));
         }
-
-        Map<String, Object> result = new LinkedHashMap<>();
-        result.put("history", history);
-        result.put("forecast", forecast);
-        return result;
+        return forecast;
     }
 }
 
