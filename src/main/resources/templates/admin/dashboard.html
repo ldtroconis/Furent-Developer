@@ -144,8 +144,7 @@
                 </div>
             </div>
 
-            <!-- Double List: Recent Activity & Audit Logs (Point 6) -->
-            <!-- Status Distribution Chart + Double List -->
+            <!-- Distribución de estados + listas de actividad -->
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12">
                 <!-- Doughnut Chart: Status Distribution -->
                 <div class="bg-white rounded-3xl p-8 shadow-sm border border-surface-200">
@@ -159,64 +158,62 @@
                     <div class="mt-4 space-y-2" id="statusLegend"></div>
                 </div>
 
-                <!-- Activity List (spans 2 cols) -->
+                <!-- Últimas reservas + auditoría (ocupan 2 columnas) -->
                 <div class="lg:col-span-2 grid grid-cols-1 lg:grid-cols-2 gap-8">
-
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                <!-- Activity List -->
-                <div class="bg-white rounded-3xl p-8 shadow-sm border border-surface-200">
-                    <div class="flex items-center justify-between mb-8">
-                        <h3 class="text-xl font-bold text-surface-900">Últimas Reservas</h3>
-                        <a th:href="@{/admin/reservas}" class="text-xs font-bold text-furent-500 hover:underline">Gestionar todas</a>
-                    </div>
-                    <div class="space-y-6">
-                        <div th:each="r : ${ultimasReservas}" class="flex items-center justify-between group">
-                            <div class="flex items-center gap-4">
-                                <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-surface-100 to-surface-200 flex items-center justify-center text-surface-700 font-bold shadow-sm" th:text="${r.usuarioNombre != null ? #strings.substring(r.usuarioNombre,0,1) : 'U'}">U</div>
-                                <div>
-                                    <p class="text-sm font-bold text-surface-900" th:text="${r.usuarioNombre}">Nombre</p>
-                                    <p class="text-[10px] font-bold text-surface-400 uppercase tracking-widest mt-0.5" th:text="${#temporals.format(r.fechaCreacion, 'dd MMM, HH:mm')}">Fecha</p>
+                    <!-- Activity List -->
+                    <div class="bg-white rounded-3xl p-8 shadow-sm border border-surface-200">
+                        <div class="flex items-center justify-between mb-8">
+                            <h3 class="text-xl font-bold text-surface-900">Últimas Reservas</h3>
+                            <a th:href="@{/admin/reservas}" class="text-xs font-bold text-furent-500 hover:underline">Gestionar todas</a>
+                        </div>
+                        <!-- Lista con altura máxima y scroll interno -->
+                        <div class="space-y-6 max-h-[260px] overflow-y-auto pr-1">
+                            <div th:each="r : ${ultimasReservas}" class="flex items-center justify-between group">
+                                <div class="flex items-center gap-4">
+                                    <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-surface-100 to-surface-200 flex items-center justify-center text-surface-700 font-bold shadow-sm" th:text="${r.usuarioNombre != null ? #strings.substring(r.usuarioNombre,0,1) : 'U'}">U</div>
+                                    <div>
+                                        <p class="text-sm font-bold text-surface-900" th:text="${r.usuarioNombre}">Nombre</p>
+                                        <p class="text-[10px] font-bold text-surface-400 uppercase tracking-widest mt-0.5" th:text="${#temporals.format(r.fechaCreacion, 'dd MMM, HH:mm')}">Fecha</p>
+                                    </div>
+                                </div>
+                                <div class="text-right">
+                                    <p class="text-sm font-black text-surface-900" th:text="'$' + ${#numbers.formatInteger(r.total, 1, 'POINT')}">$0</p>
+                                    <span th:class="${r.estado == 'PENDIENTE' ? 'text-amber-600' : r.estado == 'CONFIRMADA' ? 'text-blue-600' : r.estado == 'ENTREGADA' ? 'text-green-600' : 'text-surface-400'} + ' text-[9px] font-black uppercase tracking-widest'" th:text="${r.estado}">ESTADO</span>
                                 </div>
                             </div>
-                            <div class="text-right">
-                                <p class="text-sm font-black text-surface-900" th:text="'$' + ${#numbers.formatInteger(r.total, 1, 'POINT')}">$0</p>
-                                <span th:class="${r.estado == 'PENDIENTE' ? 'text-amber-600' : r.estado == 'CONFIRMADA' ? 'text-blue-600' : r.estado == 'ENTREGADA' ? 'text-green-600' : 'text-surface-400'} + ' text-[9px] font-black uppercase tracking-widest'" th:text="${r.estado}">ESTADO</span>
+                            <div th:if="${#lists.isEmpty(ultimasReservas)}" class="text-center py-12 opacity-30">
+                                <p class="text-sm font-bold italic">No hay actividad reciente</p>
                             </div>
                         </div>
-                        <div th:if="${#lists.isEmpty(ultimasReservas)}" class="text-center py-12 opacity-30">
-                            <p class="text-sm font-bold italic">No hay actividad reciente</p>
+                    </div>
+                    <!-- Audit Logs (Point 6) -->
+                    <div class="bg-surface-50 rounded-3xl p-8 border border-surface-200">
+                        <div class="flex items-center justify-between mb-8">
+                            <h3 class="text-xl font-bold text-surface-900">Auditoría del Sistema</h3>
+                            <span class="px-3 py-1 bg-white border border-surface-200 rounded-lg text-[10px] font-bold text-surface-500 uppercase">Seguridad</span>
                         </div>
-                    </div>
-                </div>
-
-                <!-- Audit Logs (Point 6) -->
-                <div class="bg-surface-50 rounded-3xl p-8 border border-surface-200">
-                    <div class="flex items-center justify-between mb-8">
-                        <h3 class="text-xl font-bold text-surface-900">Auditoría del Sistema</h3>
-                        <span class="px-3 py-1 bg-white border border-surface-200 rounded-lg text-[10px] font-bold text-surface-500 uppercase">Seguridad</span>
-                    </div>
-                    <div class="space-y-4">
-                        <div th:each="log : ${auditLogs}" class="bg-white p-4 rounded-2xl border border-surface-100 shadow-sm flex gap-4">
-                            <div class="w-10 h-10 rounded-xl bg-surface-900 flex-shrink-0 flex items-center justify-center text-white">
-                                <svg th:if="${log.accion == 'CREAR'}" class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
-                                <svg th:if="${log.accion == 'ACTUALIZAR'}" class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99"/></svg>
-                                <svg th:if="${log.accion == 'CAMBIAR_ESTADO'}" class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.324.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 011.37.49l1.296 2.247a1.125 1.125 0 01-.26 1.431l-1.003.827c-.293.24-.438.613-.431.992a6.759 6.759 0 010 .255c-.007.378.138.75.43.99l1.005.828c.424.35.534.954.26 1.43l-1.298 2.247a1.125 1.125 0 01-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.57 6.57 0 01-.22.128c-.332.183-.582.495-.644.869l-.213 1.28c-.09.543-.56.941-1.11.941h-2.594c-.55 0-1.02-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 01-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 01-1.369-.49l-1.297-2.247a1.125 1.125 0 01.26-1.431l1.004-.827c.292-.24.437-.613.43-.992a6.932 6.932 0 010-.255c.007-.378-.138-.75-.43-.99l-1.004-.828a1.125 1.125 0 01-.26-1.43l1.297-2.247a1.125 1.125 0 011.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.087.22-.128.332-.183.582-.495.644-.869l.214-1.281z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-                            </div>
-                            <div class="min-w-0">
-                                <div class="flex items-center gap-2 mb-1">
-                                    <span class="text-[10px] font-bold text-white bg-surface-900 px-2 py-0.5 rounded uppercase" th:text="${log.accion}">ACCION</span>
-                                    <span class="text-[10px] font-bold text-surface-400" th:text="${#temporals.format(log.fecha, 'HH:mm')}">Time</span>
+                        <!-- Lista con altura máxima y scroll interno -->
+                        <div class="space-y-4 max-h-[260px] overflow-y-auto pr-1">
+                            <div th:each="log : ${auditLogs}" class="bg-white p-4 rounded-2xl border border-surface-100 shadow-sm flex gap-4">
+                                <div class="w-10 h-10 rounded-xl bg-surface-900 flex-shrink-0 flex items-center justify-center text-white">
+                                    <svg th:if="${log.accion == 'CREAR'}" class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
+                                    <svg th:if="${log.accion == 'ACTUALIZAR'}" class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99"/></svg>
+                                    <svg th:if="${log.accion == 'CAMBIAR_ESTADO'}" class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.324.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 011.37.49l1.296 2.247a1.125 1.125 0 01-.26 1.431l-1.003.827c-.293.24-.438.613-.431.992a6.759 6.759 0 010 .255c-.007.378.138.75.43.99l1.005.828c.424.35.534.954.26 1.43l-1.298 2.247a1.125 1.125 0 01-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.57 6.57 0 01-.22.128c-.332.183-.582.495-.644.869l-.213 1.28c-.09.543-.56.941-1.11.941h-2.594c-.55 0-1.02-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 01-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 01-1.369-.49l-1.297-2.247a1.125 1.125 0 01.26-1.431l1.004-.827c.292-.24.437-.613.43-.992a6.932 6.932 0 010-.255c.007-.378-.138-.75-.43-.99l-1.004-.828a1.125 1.125 0 01-.26-1.43l1.297-2.247a1.125 1.125 0 011.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.087.22-.128.332-.183.582-.495.644-.869l.214-1.281z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
                                 </div>
-                                <p class="text-xs font-bold text-surface-900 truncate" th:text="${log.detalle}">Detalle</p>
-                                <p class="text-[10px] text-surface-500 font-medium" th:text="'Por: ' + ${log.usuario}">Usuario</p>
+                                <div class="min-w-0">
+                                    <div class="flex items-center gap-2 mb-1">
+                                        <span class="text-[10px] font-bold text-white bg-surface-900 px-2 py-0.5 rounded uppercase" th:text="${log.accion}">ACCION</span>
+                                        <span class="text-[10px] font-bold text-surface-400" th:text="${#temporals.format(log.fecha, 'HH:mm')}">Time</span>
+                                    </div>
+                                    <p class="text-xs font-bold text-surface-900 truncate" th:text="${log.detalle}">Detalle</p>
+                                    <p class="text-[10px] text-surface-500 font-medium" th:text="'Por: ' + ${log.usuario}">Usuario</p>
+                                </div>
+                            </div>
+                            <div th:if="${#lists.isEmpty(auditLogs)}" class="text-center py-12 opacity-30">
+                                <p class="text-sm font-bold italic">Sin registros de auditoría</p>
                             </div>
                         </div>
-                        <div th:if="${#lists.isEmpty(auditLogs)}" class="text-center py-12 opacity-30">
-                            <p class="text-sm font-bold italic">Sin registros de auditoría</p>
-                        </div>
                     </div>
-                </div>
-            </div>
                 </div><!-- end lg:col-span-2 -->
             </div><!-- end 3-col grid -->
         </div>

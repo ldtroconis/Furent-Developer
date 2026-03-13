@@ -17,6 +17,7 @@ import com.alquiler.furent.event.ReservationCancelledEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import org.springframework.data.mongodb.core.MongoTemplate;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
@@ -56,17 +57,20 @@ public class ReservationService {
         private final StatusHistoryRepository statusHistoryRepository;
         private final EventPublisher eventPublisher;
         private final MetricsConfig metricsConfig;
+        private final MongoTemplate mongoTemplate;
 
         public ReservationService(ReservationRepository reservationRepository,
                         ProductRepository productRepository,
                         StatusHistoryRepository statusHistoryRepository,
                         EventPublisher eventPublisher,
-                        MetricsConfig metricsConfig) {
+                        MetricsConfig metricsConfig,
+                        MongoTemplate mongoTemplate) {
                 this.reservationRepository = reservationRepository;
                 this.productRepository = productRepository;
                 this.statusHistoryRepository = statusHistoryRepository;
                 this.eventPublisher = eventPublisher;
                 this.metricsConfig = metricsConfig;
+                this.mongoTemplate = mongoTemplate;
         }
 
         public List<Reservation> getAllReservations() {
@@ -96,6 +100,16 @@ public class ReservationService {
 
         public List<Reservation> getCompletedReservations() {
                 return reservationRepository.findByEstado(EstadoReserva.COMPLETADA.name());
+        }
+
+        /**
+         * Elimina una reserva/cotización por ID.
+         * Si no existe, lanza ResourceNotFoundException.
+         */
+        public void deleteById(String id) {
+                Reservation existing = getByIdOrThrow(id);
+                reservationRepository.delete(existing);
+                log.info("Reserva {} eliminada por admin", id);
         }
 
         public List<Reservation> getConfirmedReservations() {
@@ -277,7 +291,8 @@ public class ReservationService {
 
                                 r.setEstado(newStatus);
                                 r.setFechaActualizacion(java.time.LocalDateTime.now());
-                                reservationRepository.save(r);
+                                // Usar MongoTemplate.save para forzar actualización por _id y evitar errores de clave duplicada
+                                mongoTemplate.save(r);
 
                                 // Registrar en historial
                                 statusHistoryRepository.save(new StatusHistory(id, oldStatus, newStatus, usuario, nota));

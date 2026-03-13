@@ -41,6 +41,25 @@ public class AdminReservasController {
         return "admin/reservas";
     }
 
+    @PostMapping("/reservas/eliminar/{id}")
+    public String deleteReservation(@PathVariable String id,
+                                    Authentication authentication,
+                                    RedirectAttributes redirectAttributes) {
+        try {
+            reservationService.deleteById(id);
+            if (authentication != null) {
+                auditLogService.log(authentication.getName(), "ELIMINAR_COTIZACION", "RESERVA", id,
+                        "Reserva/cotización eliminada manualmente desde el panel admin");
+            }
+            redirectAttributes.addFlashAttribute("success", "Cotización eliminada correctamente.");
+        } catch (com.alquiler.furent.exception.ResourceNotFoundException ex) {
+            redirectAttributes.addFlashAttribute("error", "La cotización ya no existe.");
+        } catch (Exception ex) {
+            redirectAttributes.addFlashAttribute("error", "No se pudo eliminar la cotización. Intenta de nuevo.");
+        }
+        return "redirect:/admin/reservas";
+    }
+
     @PostMapping("/reservas/estado/{id}")
     public String updateReservationStatus(@PathVariable String id, @RequestParam String estado,
             @RequestParam(required = false) String nota,

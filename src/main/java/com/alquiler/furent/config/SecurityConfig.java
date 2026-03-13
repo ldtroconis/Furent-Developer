@@ -147,7 +147,13 @@ public class SecurityConfig {
                                                                 .maxAgeInSeconds(31536000)
                                                                 .preload(true))
                                                 .contentSecurityPolicy(csp -> csp
-                                                                .policyDirectives("default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.tailwindcss.com https://cdn.jsdelivr.net https://unpkg.com https://code.jquery.com https://cdn.datatables.net; style-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com https://fonts.googleapis.com https://cdn.jsdelivr.net https://unpkg.com https://cdn.datatables.net; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self';"))
+                                                                .policyDirectives(
+                                                                                "default-src 'self'; " +
+                                                                                "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.tailwindcss.com https://cdn.jsdelivr.net https://unpkg.com https://code.jquery.com https://cdn.datatables.net; " +
+                                                                                "style-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com https://fonts.googleapis.com https://cdn.jsdelivr.net https://unpkg.com https://cdn.datatables.net; " +
+                                                                                "font-src 'self' data: https://fonts.gstatic.com; " +
+                                                                                "img-src 'self' data: blob: https:; " +
+                                                                                "connect-src 'self' https://cdn.jsdelivr.net;"))
                                                 .frameOptions(frame -> frame.deny()));
 
                 return http.build();
