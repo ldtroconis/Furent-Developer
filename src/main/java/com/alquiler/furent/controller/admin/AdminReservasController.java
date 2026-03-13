@@ -36,7 +36,7 @@ public class AdminReservasController {
     public String listReservations(Model model) {
         model.addAttribute("reservas", reservationService.getAllReservations());
         model.addAttribute("pendientes", reservationService.getPendingReservations());
-        model.addAttribute("activas", reservationService.getActiveReservations());
+        model.addAttribute("entregadas", reservationService.getActiveReservations());
         model.addAttribute("completadas", reservationService.getCompletedReservations());
         return "admin/reservas";
     }
@@ -47,6 +47,14 @@ public class AdminReservasController {
             Authentication authentication,
             RedirectAttributes redirectAttributes) {
         try {
+            // FIX: Validar que el estado sea un valor válido del enum
+            try {
+                com.alquiler.furent.enums.EstadoReserva.valueOf(estado);
+            } catch (IllegalArgumentException e) {
+                redirectAttributes.addFlashAttribute("error", "Estado no válido: " + estado);
+                return "redirect:/admin/reservas";
+            }
+
             reservationService.updateStatus(id, estado, authentication.getName(), nota);
             auditLogService.log(authentication.getName(), "CAMBIAR_ESTADO", "RESERVA", id, "Estado: " + estado);
 

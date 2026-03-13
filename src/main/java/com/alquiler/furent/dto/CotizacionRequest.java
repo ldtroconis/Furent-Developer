@@ -41,6 +41,8 @@ public class CotizacionRequest {
     @Valid
     private List<CartItem> items;
 
+    private String horaEntrega;
+
     private String codigoCupon;
 
     public static class CartItem {
@@ -165,5 +167,13 @@ public class CotizacionRequest {
 
     public void setCodigoCupon(String codigoCupon) {
         this.codigoCupon = codigoCupon;
+    }
+
+    public String getHoraEntrega() {
+        return horaEntrega;
+    }
+
+    public void setHoraEntrega(String horaEntrega) {
+        this.horaEntrega = horaEntrega;
     }
 }

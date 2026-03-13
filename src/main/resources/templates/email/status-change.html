@@ -30,7 +30,7 @@
                                 <td style="color:#6b7280;font-size:14px;">Nuevo Estado</td>
                                 <td style="text-align:right;">
                                     <span style="display:inline-block;padding:4px 16px;border-radius:20px;font-weight:600;font-size:13px;color:#ffffff;"
-                                          th:style="'display:inline-block;padding:4px 16px;border-radius:20px;font-weight:600;font-size:13px;color:#ffffff;background:' + ${nuevoEstado == 'CONFIRMADA' ? '#3b82f6' : (nuevoEstado == 'ACTIVA' ? '#10b981' : (nuevoEstado == 'COMPLETADA' ? '#059669' : (nuevoEstado == 'CANCELADA' ? '#ef4444' : '#f59e0b')))}"
+                                          th:style="'display:inline-block;padding:4px 16px;border-radius:20px;font-weight:600;font-size:13px;color:#ffffff;background:' + ${nuevoEstado == 'CONFIRMADA' ? '#3b82f6' : (nuevoEstado == 'ENTREGADA' ? '#10b981' : (nuevoEstado == 'COMPLETADA' ? '#059669' : (nuevoEstado == 'CANCELADA' ? '#ef4444' : '#f59e0b')))}"
                                           th:text="${nuevoEstado}">CONFIRMADA</span>
                                 </td>
                             </tr>

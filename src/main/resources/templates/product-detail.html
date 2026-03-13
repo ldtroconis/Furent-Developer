@@ -1099,7 +1099,8 @@
             id: /*[[${product.id}]]*/ '0',
             name: /*[[${product.name}]]*/ '',
             price: /*[[${product.pricePerDay}]]*/ 0,
-            image: /*[[${product.imageUrl}]]*/ ''
+            image: /*[[${product.imageUrl}]]*/ '',
+            maxStock: /*[[${product.stock}]]*/ 0
         };
         const occupiedRanges = /*[[${occupiedRanges}]]*/ [];
     </script>
@@ -1268,8 +1269,16 @@
             const existing = bag.find(i => i.id == productData.id);
             if (existing) {
                 existing.qty = qty;
+                existing.maxStock = productData.maxStock; // Ensure updated max stock
             } else {
-                bag.push({ id: String(productData.id), name: productData.name, price: productData.price, image: productData.image, qty: qty });
+                bag.push({ 
+                    id: String(productData.id), 
+                    name: productData.name, 
+                    price: productData.price, 
+                    image: productData.image, 
+                    qty: qty,
+                    maxStock: productData.maxStock
+                });
             }
             // Animate counter
             bagCount.style.animation = 'bagBounce 0.3s ease';

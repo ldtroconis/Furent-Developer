@@ -89,7 +89,7 @@ public class PaymentService {
                 .record(java.time.Duration.ofNanos(System.nanoTime() - start));
 
         // Actualizar estado de reserva
-        reservationService.updateStatus(payment.getReservaId(), EstadoReserva.ACTIVA.name());
+        reservationService.updateStatus(payment.getReservaId(), EstadoReserva.ENTREGADA.name());
 
         // Métricas: pago confirmado + ingresos
         metricsConfig.getPaymentsCompleted().increment();

@@ -165,7 +165,7 @@
                             </div>
                             <div class="stat-tile bg-green-50 border border-green-200">
                                 <p class="text-2xl font-bold text-green-600" th:text="${#lists.size(activeReservations)}">0</p>
-                                <p class="text-[10px] font-semibold text-green-500 uppercase mt-1">Activas</p>
+                                <p class="text-[10px] font-semibold text-green-500 uppercase mt-1">Entregadas</p>
                             </div>
                             <div class="stat-tile bg-amber-50 border border-amber-200">
                                 <p class="text-2xl font-bold text-amber-600" th:text="${#lists.size(pendingReservations)}">0</p>
@@ -193,7 +193,7 @@
                                     </div>
                                     <div>
                                         <h3 class="font-bold text-lg">Próximos Eventos</h3>
-                                        <p class="text-white/70 text-xs font-medium" th:text="${#lists.size(activeReservations)} + ' reservas activas'">0 activas</p>
+                                        <p class="text-white/70 text-xs font-medium" th:text="${#lists.size(activeReservations)} + ' reservas entregadas'">0 entregadas</p>
                                     </div>
                                 </div>
                                 <div class="flex flex-wrap gap-3">
@@ -227,15 +227,15 @@
                         <div class="grid grid-cols-1 lg:grid-cols-2 gap-5" id="reservationsGrid">
                             <div th:each="res : ${reservations}"
                                  class="res-card res-card-panel bg-white border border-surface-200 p-5 flex flex-col group"
-                                 th:data-status="${res.estado == 'ACTIVA' or res.estado == 'CONFIRMADA' ? 'active' : (res.estado == 'PENDIENTE' ? 'pending' : (res.estado == 'COMPLETADA' ? 'completed' : 'cancelled'))}">
+                                 th:data-status="${res.estado == 'ENTREGADA' or res.estado == 'CONFIRMADA' ? 'active' : (res.estado == 'PENDIENTE' ? 'pending' : (res.estado == 'COMPLETADA' ? 'completed' : 'cancelled'))}">
 
                                 <!-- Header: Badge + Price -->
                                 <div class="flex justify-between items-center mb-4">
-                                    <!-- Activa -->
-                                    <span th:if="${res.estado == 'ACTIVA' or res.estado == 'CONFIRMADA'}"
+                                    <!-- Entregada -->
+                                    <span th:if="${res.estado == 'ENTREGADA' or res.estado == 'CONFIRMADA'}"
                                           class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs font-bold bg-green-500/15 text-green-400 ring-1 ring-green-500/25 shadow-sm shadow-green-500/10 dark:bg-green-500/10 dark:text-green-400 dark:ring-green-500/20">
                                         <span class="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse"></span>
-                                        Activa
+                                        Entregada
                                     </span>
                                     <!-- Pendiente -->
                                     <span th:if="${res.estado == 'PENDIENTE'}"
@@ -268,22 +268,28 @@
                                     <div class="min-w-0">
                                         <h4 class="font-semibold text-surface-900 text-sm line-clamp-1 group-hover:text-furent-600 transition-colors"
                                             th:text="${not #lists.isEmpty(res.items) ? (res.items.size() > 1 ? res.items[0].productName + ' y ' + (res.items.size() - 1) + ' más' : res.items[0].productName) : 'Cotización'}">Producto</h4>
-                                        <p class="text-xs text-surface-400 mt-0.5" th:if="${res.tipoEvento != null}" th:text="'Evento: ' + ${res.tipoEvento}"></p>
+                                        <div class="flex flex-col gap-0.5 mt-0.5">
+                                            <p class="text-[11px] text-surface-500" th:if="${res.tipoEvento != null}" th:text="'Evento: ' + ${res.tipoEvento}"></p>
+                                            <p class="text-[11px] font-medium text-blue-600 flex items-center gap-1" th:if="${res.horaEntrega != null}">
+                                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                                <span th:text="${res.horaEntrega}">Hora</span>
+                                            </p>
+                                        </div>
                                     </div>
                                 </div>
 
                                 <!-- Timeline -->
                                 <div class="flex items-center gap-0 mb-1.5 px-1">
-                                    <div th:classappend="${(res.estado == 'PENDIENTE' or res.estado == 'CONFIRMADA' or res.estado == 'ACTIVA' or res.estado == 'COMPLETADA') ? 'active' : ''}" class="timeline-dot border-2 border-surface-200 bg-white"></div>
-                                    <div th:classappend="${(res.estado == 'CONFIRMADA' or res.estado == 'ACTIVA' or res.estado == 'COMPLETADA') ? 'active' : ''}" class="timeline-bar bg-surface-200"></div>
-                                    <div th:classappend="${(res.estado == 'CONFIRMADA' or res.estado == 'ACTIVA' or res.estado == 'COMPLETADA') ? 'active' : ''}" class="timeline-dot border-2 border-surface-200 bg-white"></div>
-                                    <div th:classappend="${(res.estado == 'ACTIVA' or res.estado == 'COMPLETADA') ? 'active' : ''}" class="timeline-bar bg-surface-200"></div>
-                                    <div th:classappend="${(res.estado == 'ACTIVA' or res.estado == 'COMPLETADA') ? 'active' : ''}" class="timeline-dot border-2 border-surface-200 bg-white"></div>
+                                    <div th:classappend="${(res.estado == 'PENDIENTE' or res.estado == 'CONFIRMADA' or res.estado == 'ENTREGADA' or res.estado == 'COMPLETADA') ? 'active' : ''}" class="timeline-dot border-2 border-surface-200 bg-white"></div>
+                                    <div th:classappend="${(res.estado == 'CONFIRMADA' or res.estado == 'ENTREGADA' or res.estado == 'COMPLETADA') ? 'active' : ''}" class="timeline-bar bg-surface-200"></div>
+                                    <div th:classappend="${(res.estado == 'CONFIRMADA' or res.estado == 'ENTREGADA' or res.estado == 'COMPLETADA') ? 'active' : ''}" class="timeline-dot border-2 border-surface-200 bg-white"></div>
+                                    <div th:classappend="${(res.estado == 'ENTREGADA' or res.estado == 'COMPLETADA') ? 'active' : ''}" class="timeline-bar bg-surface-200"></div>
+                                    <div th:classappend="${(res.estado == 'ENTREGADA' or res.estado == 'COMPLETADA') ? 'active' : ''}" class="timeline-dot border-2 border-surface-200 bg-white"></div>
                                     <div th:classappend="${res.estado == 'COMPLETADA' ? 'active' : ''}" class="timeline-bar bg-surface-200"></div>
                                     <div th:classappend="${res.estado == 'COMPLETADA' ? 'active' : ''}" class="timeline-dot border-2 border-surface-200 bg-white"></div>
                                 </div>
                                 <div class="flex items-center justify-between text-[9px] font-medium uppercase tracking-wider text-surface-400 mb-4 px-0">
-                                    <span>Pendiente</span><span>Confirmada</span><span>Activa</span><span>Completada</span>
+                                    <span>Pendiente</span><span>Confirmada</span><span>Entregada</span><span>Completada</span>
                                 </div>
 
                                 <!-- Dates footer -->

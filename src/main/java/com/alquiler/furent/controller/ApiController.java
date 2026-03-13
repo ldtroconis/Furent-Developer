@@ -217,6 +217,7 @@ public class ApiController {
         res.setDireccionEvento(req.getDireccion());
         res.setNotasEvento(req.getNotas());
         res.setMetodoPago(req.getMetodoPago());
+        res.setHoraEntrega(req.getHoraEntrega());
         res.setEstado("PENDIENTE");
 
         long days = 1;
@@ -268,18 +269,24 @@ public class ApiController {
 
         // Aplicar cupón de descuento si se proporcionó
         BigDecimal descuento = BigDecimal.ZERO;
+        String couponToConsume = null;
         if (req.getCodigoCupon() != null && !req.getCodigoCupon().isBlank()) {
             Map<String, Object> cuponResult = couponService.validateCoupon(req.getCodigoCupon(), totalBruto);
             if (Boolean.TRUE.equals(cuponResult.get("valido"))) {
                 descuento = (BigDecimal) cuponResult.get("descuento");
                 res.setCodigoCupon(req.getCodigoCupon().toUpperCase().trim());
                 res.setDescuento(descuento);
-                couponService.useCoupon(req.getCodigoCupon());
+                couponToConsume = req.getCodigoCupon(); // Defer usage until after save
             }
         }
         res.setTotal(totalBruto.subtract(descuento));
 
         reservationService.save(res);
+
+        // FIX: Consume coupon AFTER successful save to avoid wasting it on save failure
+        if (couponToConsume != null) {
+            couponService.useCoupon(couponToConsume);
+        }
 
         auditLogService.log(user.getEmail(), "CREAR_COTIZACION", "RESERVA", res.getId(),
                 "Nueva cotización creada por el usuario");

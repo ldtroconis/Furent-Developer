@@ -3,8 +3,7 @@ package com.alquiler.furent.enums;
 public enum EstadoReserva {
     PENDIENTE("Pendiente"),
     CONFIRMADA("Confirmada"),
-    ACTIVA("Activa"),
-    EN_CURSO("En Curso"),
+    ENTREGADA("Entregada"),
     COMPLETADA("Completada"),
     CANCELADA("Cancelada");
 

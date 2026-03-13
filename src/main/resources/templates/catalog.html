@@ -261,7 +261,8 @@
                                             th:data-id="${product.id}"
                                             th:data-name="${product.name}"
                                             th:data-price="${product.pricePerDay}"
-                                            th:data-image="${product.imageUrl}">
+                                            th:data-image="${product.imageUrl}"
+                                            th:data-stock="${product.stock}">
                                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
                                         Agregar
                                     </button>
@@ -630,7 +631,14 @@
             if (existing) {
                 bag = bag.filter(item => item.id !== id);
             } else {
-                bag.push({ id: btn.dataset.id, name: btn.dataset.name, price: btn.dataset.price, image: btn.dataset.image, qty: 1 });
+                bag.push({ 
+                    id: btn.dataset.id, 
+                    name: btn.dataset.name, 
+                    price: btn.dataset.price, 
+                    image: btn.dataset.image, 
+                    qty: 1,
+                    maxStock: parseInt(btn.dataset.stock) || 0
+                });
                 // Counter bounce animation
                 bagCount.style.animation = 'bagBounce 0.3s ease';
                 setTimeout(() => bagCount.style.animation = '', 300);

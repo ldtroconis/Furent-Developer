@@ -31,7 +31,7 @@ public class AdminDashboardController {
         model.addAttribute("totalCategorias", productService.countCategories());
         model.addAttribute("totalReservas", reservationService.count());
         model.addAttribute("reservasPendientes", reservationService.countByEstado("PENDIENTE"));
-        model.addAttribute("reservasActivas", reservationService.countByEstado("ACTIVA"));
+        model.addAttribute("reservasActivas", reservationService.countByEstado("ENTREGADA"));
         model.addAttribute("totalUsuarios", userService.count());
         model.addAttribute("totalIngresos", reservationService.calculateTotalRevenue());
         model.addAttribute("revenueData", reservationService.getRevenueByDay());

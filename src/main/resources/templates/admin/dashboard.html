@@ -180,7 +180,7 @@
                             </div>
                             <div class="text-right">
                                 <p class="text-sm font-black text-surface-900" th:text="'$' + ${#numbers.formatInteger(r.total, 1, 'POINT')}">$0</p>
-                                <span th:class="${r.estado == 'PENDIENTE' ? 'text-amber-600' : r.estado == 'CONFIRMADA' ? 'text-blue-600' : r.estado == 'ACTIVA' ? 'text-green-600' : 'text-surface-400'} + ' text-[9px] font-black uppercase tracking-widest'" th:text="${r.estado}">ESTADO</span>
+                                <span th:class="${r.estado == 'PENDIENTE' ? 'text-amber-600' : r.estado == 'CONFIRMADA' ? 'text-blue-600' : r.estado == 'ENTREGADA' ? 'text-green-600' : 'text-surface-400'} + ' text-[9px] font-black uppercase tracking-widest'" th:text="${r.estado}">ESTADO</span>
                             </div>
                         </div>
                         <div th:if="${#lists.isEmpty(ultimasReservas)}" class="text-center py-12 opacity-30">
@@ -291,8 +291,8 @@
                 const statusLabels = Object.keys(statusData);
                 const statusValues = Object.values(statusData);
                 const statusColors = {
-                    'PENDIENTE': '#f59e0b', 'CONFIRMADA': '#3b82f6', 'ACTIVA': '#22c55e',
-                    'EN_CURSO': '#8b5cf6', 'COMPLETADA': '#10b981', 'CANCELADA': '#ef4444'
+                    'PENDIENTE': '#f59e0b', 'CONFIRMADA': '#3b82f6', 'ENTREGADA': '#22c55e',
+                    'COMPLETADA': '#10b981', 'CANCELADA': '#ef4444'
                 };
                 const bgColors = statusLabels.map(l => statusColors[l] || '#a1a1aa');
 

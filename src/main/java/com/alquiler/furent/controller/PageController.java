@@ -152,7 +152,7 @@ public class PageController {
                 userRes = reservationService.getByUsuarioId(uId);
 
                 active = userRes.stream()
-                        .filter(r -> "ACTIVA".equals(r.getEstado()) || "CONFIRMADA".equals(r.getEstado()))
+                        .filter(r -> "ENTREGADA".equals(r.getEstado()) || "CONFIRMADA".equals(r.getEstado()))
                         .collect(Collectors.toList());
                 pending = userRes.stream().filter(r -> "PENDIENTE".equals(r.getEstado()))
                         .collect(Collectors.toList());
@@ -160,7 +160,7 @@ public class PageController {
                         .collect(Collectors.toList());
 
                 BigDecimal totalGastado = userRes.stream()
-                        .filter(r -> "COMPLETADA".equals(r.getEstado()) || "ACTIVA".equals(r.getEstado())
+                        .filter(r -> "COMPLETADA".equals(r.getEstado()) || "ENTREGADA".equals(r.getEstado())
                                 || "CONFIRMADA".equals(r.getEstado()))
                         .map(Reservation::getTotal)
                         .filter(t -> t != null)

@@ -8,10 +8,10 @@ import java.util.List;
 public interface ReservationRepository extends MongoRepository<Reservation, String> {
     List<Reservation> findByUsuarioId(String usuarioId);
 
-    @Query("{'items.productoId': ?0, 'estado': {$in: ['PENDIENTE','CONFIRMADA','ACTIVA']}}")
+    @Query("{'items.productoId': ?0, 'estado': {$in: ['PENDIENTE','CONFIRMADA','ENTREGADA']}}")
     List<Reservation> findActiveByProductoId(String productoId);
 
-    @Query("{'items.productoId': {$in: ?0}, 'estado': {$in: ['PENDIENTE','CONFIRMADA','ACTIVA']}}")
+    @Query("{'items.productoId': {$in: ?0}, 'estado': {$in: ['PENDIENTE','CONFIRMADA','ENTREGADA']}}")
     List<Reservation> findActiveByProductIds(List<String> productIds);
 
     List<Reservation> findByEstado(String estado);

@@ -26,6 +26,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.time.format.DateTimeFormatter;
+import org.springframework.dao.OptimisticLockingFailureException;
 
 /**
  * Servicio de gestión de reservas y cotizaciones.
@@ -44,10 +45,9 @@ public class ReservationService {
         private static final Map<String, Set<String>> TRANSITIONS = Map.of(
                         EstadoReserva.PENDIENTE.name(),
                         Set.of(EstadoReserva.CONFIRMADA.name(), EstadoReserva.CANCELADA.name()),
-                        EstadoReserva.CONFIRMADA.name(), Set.of(EstadoReserva.ACTIVA.name(), EstadoReserva.CANCELADA.name()),
-                        EstadoReserva.ACTIVA.name(),
-                        Set.of(EstadoReserva.EN_CURSO.name(), EstadoReserva.COMPLETADA.name(), EstadoReserva.CANCELADA.name()),
-                        EstadoReserva.EN_CURSO.name(), Set.of(EstadoReserva.COMPLETADA.name(), EstadoReserva.CANCELADA.name()),
+                        EstadoReserva.CONFIRMADA.name(), Set.of(EstadoReserva.ENTREGADA.name(), EstadoReserva.CANCELADA.name()),
+                        EstadoReserva.ENTREGADA.name(),
+                        Set.of(EstadoReserva.COMPLETADA.name(), EstadoReserva.CANCELADA.name()),
                         EstadoReserva.COMPLETADA.name(), Set.of(),
                         EstadoReserva.CANCELADA.name(), Set.of());
 
@@ -87,7 +87,7 @@ public class ReservationService {
         }
 
         public List<Reservation> getActiveReservations() {
-                return reservationRepository.findByEstado(EstadoReserva.ACTIVA.name());
+                return reservationRepository.findByEstado(EstadoReserva.ENTREGADA.name());
         }
 
         public List<Reservation> getPendingReservations() {
@@ -113,13 +113,33 @@ public class ReservationService {
         public Reservation save(Reservation reservation) {
                 validateDates(reservation);
                 long start = System.nanoTime();
-                Reservation saved = reservationRepository.save(reservation);
-                metricsConfig.getReservationProcessingTime()
-                                .record(java.time.Duration.ofNanos(System.nanoTime() - start));
-                metricsConfig.getReservationsCreated().increment();
-                String tenantId = TenantContext.getCurrentTenant() != null ? TenantContext.getCurrentTenant() : "default";
-                eventPublisher.publish(new ReservationCreatedEvent(this, saved, tenantId));
-                return saved;
+
+                // Retry con lock optimista — hasta 3 intentos si hay conflicto concurrente
+                int maxRetries = 3;
+                for (int attempt = 1; attempt <= maxRetries; attempt++) {
+                        try {
+                                Reservation saved = reservationRepository.save(reservation);
+                                metricsConfig.getReservationProcessingTime()
+                                                .record(java.time.Duration.ofNanos(System.nanoTime() - start));
+                                metricsConfig.getReservationsCreated().increment();
+                                String tenantId = TenantContext.getCurrentTenant() != null ? TenantContext.getCurrentTenant() : "default";
+                                eventPublisher.publish(new ReservationCreatedEvent(this, saved, tenantId));
+                                return saved;
+                        } catch (OptimisticLockingFailureException e) {
+                                if (attempt == maxRetries) {
+                                        log.error("Error de concurrencia al guardar reserva después de {} intentos", maxRetries);
+                                        throw new InvalidOperationException(
+                                                "No se pudo procesar la reserva debido a alta demanda concurrente. Por favor, intenta de nuevo.");
+                                }
+                                log.warn("Conflicto de concurrencia al guardar reserva, reintento {}/{}", attempt, maxRetries);
+                                // Re-cargar la reserva si ya tiene ID (update)
+                                if (reservation.getId() != null) {
+                                        reservation = reservationRepository.findById(reservation.getId())
+                                                .orElse(reservation);
+                                }
+                        }
+                }
+                throw new InvalidOperationException("Error inesperado al guardar reserva");
         }
 
         private void validateDates(Reservation reservation) {
@@ -146,6 +166,12 @@ public class ReservationService {
          * Validates that enough stock is available for each product in the reservation
          * across the requested date range. Returns a map of productId -> error message
          * for any product that would be overbooked. Empty map = all OK.
+         * 
+         * ANTI-OVERBOOKING: Calcula disponibilidad real considerando:
+         * - Stock total del producto
+         * - Reservas activas que se solapan (PENDIENTE, CONFIRMADA, ACTIVA, EN_CURSO)
+         * - Excluye la reserva actual si está siendo editada
+         * - Productos en mantenimiento (EN_REPARACION) no están disponibles
          */
         public java.util.Map<String, String> validateAvailability(Reservation reservation) {
                 java.util.Map<String, String> errors = new java.util.LinkedHashMap<>();
@@ -154,17 +180,22 @@ public class ReservationService {
 
                 LocalDate reqStart = reservation.getFechaInicio();
                 LocalDate reqEnd = reservation.getFechaFin();
+                LocalDate reqEndWithBuffer = reqEnd.plusDays(1); // Buffer de 1 día de limpieza
+                String currentReservationId = reservation.getId(); // Puede ser null si es nueva
 
                 // Collect all product IDs requested
                 List<String> productIds = reservation.getItems().stream()
                         .map(Reservation.ItemReserva::getProductoId)
+                        .distinct()
                         .collect(Collectors.toList());
 
-                // Get all overlapping active reservations (PENDIENTE, CONFIRMADA, ACTIVA)
+                // Get all overlapping active reservations (PENDIENTE, CONFIRMADA, ACTIVA, EN_CURSO)
+                // EXCLUIR la reserva actual si está siendo editada
                 List<Reservation> overlapping = reservationRepository.findActiveByProductIds(productIds)
                         .stream()
+                        .filter(r -> currentReservationId == null || !r.getId().equals(currentReservationId)) // FIX: Excluir reserva actual
                         .filter(r -> r.getFechaInicio() != null && r.getFechaFin() != null)
-                        .filter(r -> !r.getFechaFin().isBefore(reqStart) && !r.getFechaInicio().isAfter(reqEnd))
+                        .filter(r -> !r.getFechaFin().plusDays(1).isBefore(reqStart) && !r.getFechaInicio().isAfter(reqEndWithBuffer))
                         .collect(Collectors.toList());
 
                 // For each product, calculate peak usage across all days in the range
@@ -178,15 +209,33 @@ public class ReservationService {
                                 errors.put(pid, "El producto '" + item.getProductoNombre() + "' ya no existe en el catálogo.");
                                 continue;
                         }
-                        int totalStock = productOpt.get().getStock();
+                        
+                        Product product = productOpt.get();
+                        int totalStock = product.getStock();
+                        
+                        // FIX: Verificar que el producto no esté en mantenimiento
+                        if ("EN_REPARACION".equals(product.getEstadoMantenimiento())) {
+                                errors.put(pid, String.format(
+                                        "'%s' está actualmente en reparación y no puede ser reservado.",
+                                        product.getNombre()));
+                                continue;
+                        }
+                        
+                        // FIX: Verificar que el producto esté disponible
+                        if (!product.isDisponible()) {
+                                errors.put(pid, String.format(
+                                        "'%s' no está disponible para alquiler en este momento.",
+                                        product.getNombre()));
+                                continue;
+                        }
 
                         // Find the day with maximum reserved units for this product
                         int maxReserved = 0;
                         LocalDate day = reqStart;
-                        while (!day.isAfter(reqEnd)) {
+                        while (!day.isAfter(reqEndWithBuffer)) { // Checar incluyendo el día de buffer
                                 final LocalDate currentDay = day;
                                 int reservedThisDay = overlapping.stream()
-                                        .filter(r -> !currentDay.isBefore(r.getFechaInicio()) && !currentDay.isAfter(r.getFechaFin()))
+                                        .filter(r -> !currentDay.isBefore(r.getFechaInicio()) && !currentDay.isAfter(r.getFechaFin().plusDays(1)))
                                         .flatMap(r -> r.getItems().stream())
                                         .filter(i -> pid.equals(i.getProductoId()))
                                         .mapToInt(Reservation.ItemReserva::getCantidad)
@@ -197,7 +246,7 @@ public class ReservationService {
 
                         int available = totalStock - maxReserved;
                         if (requested > available) {
-                                String productName = productOpt.get().getNombre();
+                                String productName = product.getNombre();
                                 errors.put(pid, String.format(
                                         "'%s': solicitas %d unidades pero solo hay %d disponibles para esas fechas (stock total: %d, ya reservadas: %d).",
                                         productName, requested, Math.max(available, 0), totalStock, maxReserved));
@@ -211,33 +260,46 @@ public class ReservationService {
         }
 
         public void updateStatus(String id, String newStatus, String usuario, String nota) {
-                Reservation r = getByIdOrThrow(id);
-                String oldStatus = r.getEstado();
+                int maxRetries = 3;
+                for (int attempt = 1; attempt <= maxRetries; attempt++) {
+                        try {
+                                Reservation r = getByIdOrThrow(id);
+                                String oldStatus = r.getEstado();
 
-                // Validar transición (CANCELADA se permite desde cualquier estado)
-                if (!EstadoReserva.CANCELADA.name().equals(newStatus)) {
-                        Set<String> allowed = TRANSITIONS.getOrDefault(oldStatus, Set.of());
-                        if (!allowed.contains(newStatus)) {
-                                throw new InvalidOperationException(
-                                                String.format("Transición no válida: %s → %s", oldStatus, newStatus));
+                                // Validar transición (CANCELADA se permite desde cualquier estado)
+                                if (!EstadoReserva.CANCELADA.name().equals(newStatus)) {
+                                        Set<String> allowed = TRANSITIONS.getOrDefault(oldStatus, Set.of());
+                                        if (!allowed.contains(newStatus)) {
+                                                throw new InvalidOperationException(
+                                                                String.format("Transición no válida: %s → %s", oldStatus, newStatus));
+                                        }
+                                }
+
+                                r.setEstado(newStatus);
+                                r.setFechaActualizacion(java.time.LocalDateTime.now());
+                                reservationRepository.save(r);
+
+                                // Registrar en historial
+                                statusHistoryRepository.save(new StatusHistory(id, oldStatus, newStatus, usuario, nota));
+                                log.info("Reserva {} cambió de {} a {} por {}", id, oldStatus, newStatus, usuario);
+
+                                // Publicar evento si fue cancelada
+                                if (EstadoReserva.CANCELADA.name().equals(newStatus)) {
+                                        metricsConfig.getReservationsCancelled().increment();
+                                        String tenantId = TenantContext.getCurrentTenant() != null ? TenantContext.getCurrentTenant()
+                                                        : "default";
+                                        eventPublisher.publish(new ReservationCancelledEvent(this, r, tenantId,
+                                                        nota != null ? nota : "Sin razón especificada"));
+                                }
+                                return; // éxito
+                        } catch (OptimisticLockingFailureException e) {
+                                if (attempt == maxRetries) {
+                                        log.error("Error de concurrencia al actualizar estado de reserva {} después de {} intentos", id, maxRetries);
+                                        throw new InvalidOperationException(
+                                                "No se pudo actualizar el estado debido a un conflicto concurrente. Intenta de nuevo.");
+                                }
+                                log.warn("Conflicto de concurrencia en updateStatus, reintento {}/{}", attempt, maxRetries);
                         }
-                }
-
-                r.setEstado(newStatus);
-                r.setFechaActualizacion(java.time.LocalDateTime.now());
-                reservationRepository.save(r);
-
-                // Registrar en historial
-                statusHistoryRepository.save(new StatusHistory(id, oldStatus, newStatus, usuario, nota));
-                log.info("Reserva {} cambió de {} a {} por {}", id, oldStatus, newStatus, usuario);
-
-                // Publicar evento si fue cancelada
-                if (EstadoReserva.CANCELADA.name().equals(newStatus)) {
-                        metricsConfig.getReservationsCancelled().increment();
-                        String tenantId = TenantContext.getCurrentTenant() != null ? TenantContext.getCurrentTenant()
-                                        : "default";
-                        eventPublisher.publish(new ReservationCancelledEvent(this, r, tenantId,
-                                        nota != null ? nota : "Sin razón especificada"));
                 }
         }
 
@@ -256,7 +318,7 @@ public class ReservationService {
         public BigDecimal calculateTotalRevenue() {
                 return reservationRepository.findAll().stream()
                                 .filter(r -> EstadoReserva.COMPLETADA.name().equals(r.getEstado())
-                                                || EstadoReserva.ACTIVA.name().equals(r.getEstado())
+                                                || EstadoReserva.ENTREGADA.name().equals(r.getEstado())
                                                 || EstadoReserva.CONFIRMADA.name().equals(r.getEstado()))
                                 .map(Reservation::getTotal)
                                 .reduce(BigDecimal.ZERO, BigDecimal::add);
@@ -286,8 +348,12 @@ public class ReservationService {
         public List<String> getReservedDatesForProducts(List<String> productIds,
                         com.alquiler.furent.repository.ProductRepository productRepository) {
                 List<Reservation> activeReservations = reservationRepository.findAll().stream()
-                                .filter(r -> "ACTIVA".equals(r.getEstado()) || "CONFIRMADA".equals(r.getEstado()))
-                                .collect(Collectors.toList());
+				.filter(r -> {
+					String estado = r.getEstado();
+					return "PENDIENTE".equals(estado) || "CONFIRMADA".equals(estado)
+						|| "ENTREGADA".equals(estado);
+				})
+				.collect(Collectors.toList());
 
                 java.util.Set<String> blockedDates = new java.util.HashSet<>();
                 DateTimeFormatter formatter = DateTimeFormatter.ISO_LOCAL_DATE;
@@ -302,7 +368,7 @@ public class ReservationService {
                 for (Reservation res : activeReservations) {
                         if (res.getFechaInicio() != null && res.getFechaFin() != null) {
                                 java.time.LocalDate start = res.getFechaInicio();
-                                java.time.LocalDate end = res.getFechaFin();
+                                java.time.LocalDate end = res.getFechaFin().plusDays(1); // Mantenimiento: bloquea 1 día después
 
                                 while (!start.isAfter(end)) {
                                         String dateStr = start.format(formatter);

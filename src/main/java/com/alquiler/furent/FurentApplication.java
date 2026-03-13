@@ -7,6 +7,7 @@ import org.springframework.boot.data.redis.autoconfigure.DataRedisRepositoriesAu
 import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.scheduling.annotation.EnableAsync;
+import org.springframework.scheduling.annotation.EnableScheduling;
 
 @SpringBootApplication(exclude = {
 		DataRedisAutoConfiguration.class,
@@ -15,6 +16,7 @@ import org.springframework.scheduling.annotation.EnableAsync;
 @ConfigurationPropertiesScan
 @EnableAsync
 @EnableCaching
+@EnableScheduling
 public class FurentApplication {
 
 	public static void main(String[] args) {

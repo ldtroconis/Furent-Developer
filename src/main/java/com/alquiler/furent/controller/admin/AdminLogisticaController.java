@@ -1,7 +1,9 @@
 package com.alquiler.furent.controller.admin;
 
 import com.alquiler.furent.model.Reservation;
+import com.alquiler.furent.model.User;
 import com.alquiler.furent.service.ReservationService;
+import com.alquiler.furent.service.UserService;
 import com.alquiler.furent.service.PdfService;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -22,26 +24,48 @@ import java.util.stream.Collectors;
 public class AdminLogisticaController {
 
     private final ReservationService reservationService;
+    private final UserService userService;
     private final PdfService pdfService;
 
-    public AdminLogisticaController(ReservationService reservationService, PdfService pdfService) {
+    public AdminLogisticaController(ReservationService reservationService, UserService userService, PdfService pdfService) {
         this.reservationService = reservationService;
+        this.userService = userService;
         this.pdfService = pdfService;
     }
 
     @GetMapping("")
     public String logistica(Model model) {
         model.addAttribute("activeMenu", "logistica");
-        List<Reservation> reservations = reservationService.getAllReservations();
-
-        List<Map<String, Object>> eventsList = reservations.stream().map(r -> {
+        List<Reservation> allReservations = reservationService.getAllReservations();
+        List<Map<String, Object>> eventsList = allReservations.stream()
+            .filter(r -> "CONFIRMADA".equals(r.getEstado()) || "ENTREGADA".equals(r.getEstado()) || "COMPLETADA".equals(r.getEstado()))
+            .map(r -> {
             Map<String, Object> map = new HashMap<>();
             map.put("id", r.getId());
             map.put("usuarioNombre", r.getUsuarioNombre());
+            map.put("usuarioEmail", r.getUsuarioEmail());
             map.put("fechaInicio", r.getFechaInicio() != null ? r.getFechaInicio().toString() : null);
             map.put("fechaFin", r.getFechaFin() != null ? r.getFechaFin().toString() : null);
+            map.put("diasAlquiler", r.getDiasAlquiler());
             map.put("estado", r.getEstado());
             map.put("direccionEvento", r.getDireccionEvento());
+            map.put("notasEvento", r.getNotasEvento());
+            map.put("tipoEvento", r.getTipoEvento());
+            map.put("total", r.getTotal());
+            map.put("metodoPago", r.getMetodoPago());
+            map.put("horaEntrega", r.getHoraEntrega());
+
+            // Buscar teléfono del usuario para contacto logístico
+            String telefono = null;
+            if (r.getUsuarioId() != null) {
+                try {
+                    java.util.Optional<User> userOpt = userService.findById(r.getUsuarioId());
+                    if (userOpt.isPresent()) {
+                        telefono = userOpt.get().getTelefono();
+                    }
+                } catch (Exception ignored) {}
+            }
+            map.put("usuarioTelefono", telefono);
 
             if (r.getItems() != null) {
                 map.put("items", r.getItems().stream().map(i -> {

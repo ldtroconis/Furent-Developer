@@ -1,6 +1,7 @@
 package com.alquiler.furent.model;
 
 import org.springframework.data.annotation.Id;
+import org.springframework.data.annotation.Version;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.index.CompoundIndex;
 import org.springframework.data.mongodb.core.index.CompoundIndexes;
@@ -22,6 +23,9 @@ public class Reservation {
     @Id
     private String id;
 
+    @Version
+    private Long version; // Optimistic locking: previene race conditions en writes concurrentes
+
     @Indexed
     private String tenantId;
     private String usuarioId;
@@ -35,11 +39,12 @@ public class Reservation {
     private BigDecimal descuento;
     private String codigoCupon;
     private BigDecimal total;
-    private String estado; // PENDIENTE, CONFIRMADA, ACTIVA, COMPLETADA, CANCELADA
+    private String estado; // PENDIENTE, CONFIRMADA, ENTREGADA, COMPLETADA, CANCELADA
     private String metodoPago;
     private String direccionEvento;
     private String notasEvento;
     private String tipoEvento;
+    private String horaEntrega; // HH:mm — hora preferida de entrega logística
     @Indexed
     private LocalDateTime fechaCreacion;
     private LocalDateTime fechaActualizacion;
@@ -309,5 +314,21 @@ public class Reservation {
 
     public void setTenantId(String tenantId) {
         this.tenantId = tenantId;
+    }
+
+    public Long getVersion() {
+        return version;
+    }
+
+    public void setVersion(Long version) {
+        this.version = version;
+    }
+
+    public String getHoraEntrega() {
+        return horaEntrega;
+    }
+
+    public void setHoraEntrega(String horaEntrega) {
+        this.horaEntrega = horaEntrega;
     }
 }
