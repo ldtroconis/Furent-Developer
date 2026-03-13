@@ -875,8 +875,8 @@
             <div th:if="${relatedProducts != null && !relatedProducts.isEmpty()}" class="mt-32 mb-32">
                 <div class="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-4">
                     <div>
-                        <h2 class="text-3xl font-black text-surface-900 tracking-tight mb-2">Otros muebles que te encantarán</h2>
-                        <p class="text-surface-500 text-sm">Basado en tus preferencias y lo que otros usuarios están reservando.</p>
+                        <h2 class="text-3xl font-black text-surface-900 tracking-tight mb-2">Muebles relacionados</h2>
+                        <p class="text-surface-500 text-sm">Otros mobiliarios de la misma categoría que podrían interesarte.</p>
                     </div>
                     <a th:href="@{/catalogo(category=${product.category})}" class="inline-flex items-center gap-2 px-6 py-3 bg-white border border-surface-200 rounded-2xl text-sm font-bold text-surface-700 hover:border-furent-500 hover:text-furent-600 transition-all shadow-sm">
                         Ver todo el catálogo

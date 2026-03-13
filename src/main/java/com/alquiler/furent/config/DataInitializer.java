@@ -3,9 +3,11 @@ package com.alquiler.furent.config;
 import com.alquiler.furent.model.Category;
 import com.alquiler.furent.model.Permission;
 import com.alquiler.furent.model.Product;
+import com.alquiler.furent.model.Review;
 import com.alquiler.furent.repository.CategoryRepository;
 import com.alquiler.furent.repository.PermissionRepository;
 import com.alquiler.furent.repository.ProductRepository;
+import com.alquiler.furent.repository.ReviewRepository;
 import com.alquiler.furent.service.TenantService;
 import com.alquiler.furent.service.UserService;
 import org.slf4j.Logger;
@@ -24,6 +26,7 @@ public class DataInitializer implements CommandLineRunner {
 
         private final ProductRepository productRepository;
         private final CategoryRepository categoryRepository;
+        private final ReviewRepository reviewRepository;
         private final UserService userService;
         private final TenantService tenantService;
         private final PermissionRepository permissionRepository;
@@ -32,10 +35,12 @@ public class DataInitializer implements CommandLineRunner {
         private String adminPassword;
 
         public DataInitializer(ProductRepository productRepository, CategoryRepository categoryRepository,
+                        ReviewRepository reviewRepository,
                         UserService userService, TenantService tenantService,
                         PermissionRepository permissionRepository) {
                 this.productRepository = productRepository;
                 this.categoryRepository = categoryRepository;
+                this.reviewRepository = reviewRepository;
                 this.userService = userService;
                 this.tenantService = tenantService;
                 this.permissionRepository = permissionRepository;
@@ -64,6 +69,9 @@ public class DataInitializer implements CommandLineRunner {
                         seedProducts();
                         log.info("Productos seed creados");
                 }
+
+                // Sync product ratings from actual reviews in DB
+                syncProductRatings();
         }
 
         private void seedCategories() {
@@ -214,5 +222,37 @@ public class DataInitializer implements CommandLineRunner {
                 permissionRepository.save(superAdminPerms);
 
                 log.info("Permisos RBAC inicializados: USER, MANAGER, ADMIN, SUPER_ADMIN");
+        }
+
+        /**
+         * Recalculates calificacion and cantidadResenas for every product
+         * based on real reviews stored in the database.
+         */
+        private void syncProductRatings() {
+                List<Product> allProducts = productRepository.findAll();
+                int updated = 0;
+                for (Product product : allProducts) {
+                        List<Review> reviews = reviewRepository.findByProductIdOrderByCreatedAtDesc(product.getId());
+                        double newRating;
+                        int newCount;
+                        if (reviews.isEmpty()) {
+                                newRating = 0;
+                                newCount = 0;
+                        } else {
+                                newRating = Math.round(
+                                        reviews.stream().mapToInt(Review::getRating).average().orElse(0.0) * 10.0
+                                ) / 10.0;
+                                newCount = reviews.size();
+                        }
+                        if (product.getCalificacion() != newRating || product.getCantidadResenas() != newCount) {
+                                product.setCalificacion(newRating);
+                                product.setCantidadResenas(newCount);
+                                productRepository.save(product);
+                                updated++;
+                        }
+                }
+                if (updated > 0) {
+                        log.info("=== Sincronización de calificaciones: {} productos actualizados ===", updated);
+                }
         }
 }

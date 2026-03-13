@@ -13,6 +13,7 @@ import java.nio.file.Paths;
 
 @Configuration
 public class WebMvcConfig implements WebMvcConfigurer {
+
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
         Path uploadDir = Paths.get("uploads");
@@ -20,20 +21,38 @@ public class WebMvcConfig implements WebMvcConfigurer {
         registry.addResourceHandler("/uploads/**").addResourceLocations("file:" + uploadPath + "/");
     }
 
+    /**
+     * Configuración del multipart a nivel de Servlet.
+     * Usa java.io.tmpdir como ubicación temporal y elimina todos los límites de tamaño.
+     */
     @Bean
     public MultipartConfigElement multipartConfigElement() {
-        // -1 = sin límite de tamaño; fileSizeThreshold=0 para escribir directo a disco
-        return new MultipartConfigElement("", -1L, -1L, 0);
+        String tempDir = System.getProperty("java.io.tmpdir");
+        // location, maxFileSize, maxRequestSize, fileSizeThreshold
+        // -1L = sin límite de tamaño
+        return new MultipartConfigElement(tempDir, -1L, -1L, 0);
     }
 
+    /**
+     * Personalización de Tomcat embebido para desactivar TODOS los límites
+     * que causan el error HTTP 413 "Content Too Large".
+     *
+     * En Tomcat 11 (Spring Boot 4.x) se introdujeron nuevos límites:
+     * - maxPartCount: máximo de partes en un multipart request (default 50)
+     * - maxParameterCount: máximo de parámetros totales (default 1000)
+     * Ambos deben ser desactivados (-1) para formularios con muchos campos + archivos.
+     */
     @Bean
     public ServletWebServerFactory servletWebServerFactory() {
         TomcatServletWebServerFactory factory = new TomcatServletWebServerFactory();
         factory.addConnectorCustomizers((Connector connector) -> {
+            // Sin límite de tamaño de POST body
             connector.setMaxPostSize(-1);
+            // Sin límite de tamaño de datos que Tomcat "traga" en uploads abortados
             connector.setMaxSavePostSize(-1);
+            // Sin límite de cantidad de parámetros (query string + body)
+            connector.setMaxParameterCount(-1);
         });
-        // Desactivar el límite de cantidad de partes multipart
         factory.addContextCustomizers(context -> {
             context.setAllowCasualMultipartParsing(true);
         });

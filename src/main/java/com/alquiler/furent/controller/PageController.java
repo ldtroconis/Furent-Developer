@@ -65,7 +65,16 @@ public class PageController {
                           @RequestParam(required = false) String q,
                           @RequestParam(defaultValue = "0") int page,
                           Model model) {
-        model.addAttribute("categories", productService.getAllCategories());
+        // Compute real product counts per category
+        List<com.alquiler.furent.model.Category> categories = productService.getAllCategories();
+        List<Product> allProducts = productService.getAllProducts();
+        Map<String, Long> countsByCategory = allProducts.stream()
+                .filter(p -> p.getCategoriaNombre() != null)
+                .collect(Collectors.groupingBy(Product::getCategoriaNombre, Collectors.counting()));
+        for (com.alquiler.furent.model.Category cat : categories) {
+            cat.setCantidadProductos(countsByCategory.getOrDefault(cat.getNombre(), 0L).intValue());
+        }
+        model.addAttribute("categories", categories);
 
         if (q != null && !q.trim().isEmpty()) {
             List<Product> products = productService.searchProducts(q.trim());
@@ -88,15 +97,22 @@ public class PageController {
     public String productDetail(@PathVariable String id, Model model) {
         Optional<Product> product = productService.getProductById(id);
         if (product.isPresent()) {
-            model.addAttribute("product", product.get());
-            model.addAttribute("relatedProducts",
-                    productService.getRelatedProducts(id, product.get().getCategory()));
+            Product p = product.get();
+            model.addAttribute("product", p);
+
+            // Related products: ONLY same category, excluding the current product
+            List<Product> related = productService.getProductsByCategory(p.getCategoriaNombre())
+                    .stream()
+                    .filter(rp -> !rp.getId().equals(id))
+                    .limit(4)
+                    .collect(Collectors.toList());
+            model.addAttribute("relatedProducts", related);
 
             // Load reviews
             List<Review> reviews = reviewService.getReviewsByProduct(id);
             model.addAttribute("reviews", reviews);
 
-            // Calculate average rating
+            // Calculate average rating from real reviews (0 if no reviews)
             double avgRating = 0;
             if (!reviews.isEmpty()) {
                 avgRating = reviews.stream().mapToInt(Review::getRating).average().orElse(0.0);
