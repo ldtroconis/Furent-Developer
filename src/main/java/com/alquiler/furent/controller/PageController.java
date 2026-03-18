@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import jakarta.servlet.http.HttpServletRequest;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -203,7 +204,7 @@ public class PageController {
     @GetMapping("/pago/tarjeta")
     public String pagoTarjeta(@RequestParam(required = false) String reservaId,
                               @RequestParam(required = false) String pendingId,
-                              Model model, Authentication auth) {
+                              Model model, Authentication auth, HttpServletRequest request) {
         if (auth == null || !auth.isAuthenticated()) {
             String q = pendingId != null ? "pendingId=" + pendingId : (reservaId != null ? "reservaId=" + reservaId : "");
             return "redirect:/login?redirect=/pago/tarjeta" + (q.isEmpty() ? "" : "?" + q);
@@ -240,6 +241,11 @@ public class PageController {
         String signature = payUService.generateSignature(referenceCode, total, payUProperties.getCurrency());
         String amountFormatted = payUService.getAmountFormatted(total);
         
+        // Generar URLs absolutas
+        String baseUrl = request.getRequestURL().toString().replace(request.getRequestURI(), request.getContextPath());
+        String responseUrl = baseUrl + "/pago/resultado";
+        String confirmationUrl = baseUrl + "/api/pagos/payu/confirmacion";
+
         model.addAttribute("payuUrl", payUProperties.getUrl());
         model.addAttribute("payuApiKey", payUProperties.getApiKey());
         model.addAttribute("payuMerchantId", payUProperties.getMerchantId());
@@ -251,9 +257,55 @@ public class PageController {
         model.addAttribute("payuTest", payUProperties.getTest());
         model.addAttribute("payuBuyerEmail", userOpt.get().getEmail());
         model.addAttribute("payuBuyerFullName", userOpt.get().getNombreCompleto());
+        model.addAttribute("payuResponseUrl", responseUrl);
+        model.addAttribute("payuConfirmationUrl", confirmationUrl);
+
+        log.info("Iniciando pago tarjeta: referenceCode={}, total={}, payuUrl={}", 
+                referenceCode, total, payUProperties.getUrl());
+        log.info("URLs de retorno: responseUrl={}, confirmationUrl={}", responseUrl, confirmationUrl);
 
         model.addAttribute("pageTitle", "Pago con tarjeta");
         return "pago-tarjeta";
+    }
+
+    @GetMapping("/pago/resultado")
+    public String pagoResultado(@RequestParam Map<String, String> params, Model model, Authentication auth) {
+        if (auth == null || !auth.isAuthenticated()) return "redirect:/login";
+        
+        String state = params.get("transactionState");
+        String reference = params.get("referenceCode");
+        String transactionId = params.get("transactionId");
+        String message = params.get("message");
+        
+        model.addAttribute("state", state);
+        model.addAttribute("reference", reference);
+        model.addAttribute("transactionId", transactionId);
+        model.addAttribute("message", message);
+        
+        // Determinar el mensaje amigable
+        String statusTitle = "Procesando pago";
+        String statusClass = "text-surface-500";
+        String statusIcon = "clock";
+        
+        if ("4".equals(state)) {
+            statusTitle = "¡Pago exitoso!";
+            statusClass = "text-green-600";
+            statusIcon = "check-circle";
+        } else if ("6".equals(state)) {
+            statusTitle = "Pago rechazado";
+            statusClass = "text-red-600";
+            statusIcon = "x-circle";
+        } else if ("7".equals(state)) {
+            statusTitle = "Pago pendiente";
+            statusClass = "text-amber-600";
+            statusIcon = "clock";
+        }
+        
+        model.addAttribute("statusTitle", statusTitle);
+        model.addAttribute("statusClass", statusClass);
+        model.addAttribute("statusIcon", statusIcon);
+        
+        return "payment-result";
     }
 
     @GetMapping("/nosotros")

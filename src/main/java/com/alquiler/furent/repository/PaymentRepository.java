@@ -8,6 +8,4 @@ public interface PaymentRepository extends MongoRepository<Payment, String> {
     List<Payment> findByReservaId(String reservaId);
 
     List<Payment> findByUsuarioId(String usuarioId);
-
-    java.util.Optional<Payment> findByStripePaymentIntentId(String stripePaymentIntentId);
 }

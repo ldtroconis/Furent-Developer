@@ -362,7 +362,10 @@
                                 </div>
                             </div>
                             <div class="flex items-center gap-2">
-                                <span th:if="${notificacionesNoLeidas > 0}" class="inline-flex items-center gap-1.5 text-xs font-semibold text-white bg-furent-500 px-3 py-1.5 rounded-full shadow-sm" th:text="${notificacionesNoLeidas} + ' sin leer'">0</span>
+                                <span id="notifsUnreadBadge" th:if="${notificacionesNoLeidas > 0}" class="inline-flex items-center gap-1.5 text-xs font-semibold text-white bg-furent-500 px-3 py-1.5 rounded-full shadow-sm" th:text="${notificacionesNoLeidas} + ' sin leer'">0</span>
+                                <button id="markAllNotifsBtn" th:if="${notificacionesNoLeidas > 0}" onclick="markAllNotificationsAsRead()" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-white text-furent-600 hover:bg-furent-50 border border-furent-200 transition-all">
+                                    Leer todas
+                                </button>
                                 <button id="toggleNotifsBtn" onclick="toggleNotifications()" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-surface-100 text-surface-600 hover:bg-surface-200 dark:bg-surface-800 dark:text-surface-400 dark:hover:bg-surface-700 ring-1 ring-surface-200 dark:ring-surface-700 transition-all" title="Minimizar notificaciones">
                                     <svg id="notifsChevronUp" class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 15.75l7.5-7.5 7.5 7.5"/></svg>
                                     <svg id="notifsChevronDown" class="w-3.5 h-3.5 hidden" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5"/></svg>
@@ -394,7 +397,7 @@
                                         Fecha
                                     </p>
                                 </div>
-                                <span th:unless="${notif.leida}" class="w-2 h-2 rounded-full bg-furent-500 shrink-0 mt-2"></span>
+                                <span th:unless="${notif.leida}" class="notif-unread-dot w-2 h-2 rounded-full bg-furent-500 shrink-0 mt-2"></span>
                             </div>
                         </div>
                         <!-- Collapsed counter -->
@@ -409,6 +412,65 @@
         <script>
             // Notifications collapse/expand
             var notifsExpanded = false;
+            function showTopRightNotice(message, isError) {
+                var existing = document.querySelector('.panel-top-right-toast');
+                if (existing) existing.remove();
+
+                var toast = document.createElement('div');
+                toast.className = 'panel-top-right-toast fixed top-5 right-5 z-[120] px-4 py-2.5 rounded-xl text-xs font-semibold shadow-lg transition-all duration-300 opacity-0 -translate-y-2';
+                if (isError) {
+                    toast.classList.add('bg-red-600', 'text-white');
+                } else {
+                    toast.classList.add('bg-surface-900', 'text-white');
+                }
+                toast.textContent = message;
+                document.body.appendChild(toast);
+
+                requestAnimationFrame(function() {
+                    toast.classList.remove('opacity-0', '-translate-y-2');
+                    toast.classList.add('opacity-100', 'translate-y-0');
+                });
+
+                setTimeout(function() {
+                    toast.classList.remove('opacity-100', 'translate-y-0');
+                    toast.classList.add('opacity-0', '-translate-y-2');
+                    setTimeout(function() { toast.remove(); }, 300);
+                }, 1800);
+            }
+            async function markAllNotificationsAsRead() {
+                var btn = document.getElementById('markAllNotifsBtn');
+                if (!btn || btn.disabled) return;
+                var originalText = btn.textContent;
+                btn.disabled = true;
+                btn.textContent = 'Marcando...';
+
+                try {
+                    var res = await fetch('/api/notificaciones/leer-todas', {
+                        method: 'POST',
+                        headers: { 'Accept': 'application/json' }
+                    });
+
+                    if (!res.ok) throw new Error('No se pudieron marcar las notificaciones');
+
+                    var unreadItems = document.querySelectorAll('.notif-item.unread');
+                    unreadItems.forEach(function(item) { item.classList.remove('unread'); });
+                    var dots = document.querySelectorAll('.notif-unread-dot');
+                    dots.forEach(function(dot) { dot.remove(); });
+
+                    var badge = document.getElementById('notifsUnreadBadge');
+                    if (badge) badge.remove();
+
+                    var navbarBadge = document.querySelector('a[title="Notificaciones"] span');
+                    if (navbarBadge) navbarBadge.remove();
+
+                    btn.remove();
+                    showTopRightNotice('Todas las notificaciones fueron leídas.');
+                } catch (e) {
+                    btn.disabled = false;
+                    btn.textContent = originalText;
+                    showTopRightNotice('No fue posible marcar todas las notificaciones.', true);
+                }
+            }
             function toggleNotifications() {
                 var extras = document.querySelectorAll('.notif-extra');
                 var chevUp = document.getElementById('notifsChevronUp');

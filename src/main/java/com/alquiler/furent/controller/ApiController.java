@@ -460,8 +460,8 @@ public class ApiController {
             response.put("total", res.getTotal());
             return ResponseEntity.ok(response);
         } catch (Exception e) {
-            log.error("Error iniciar pago tarjeta: {}", e.getMessage());
-            return ResponseEntity.status(500).body(Map.of("success", false, "message", "Error al preparar el pago."));
+            log.error("Error iniciar pago tarjeta: {}", e.getMessage(), e);
+            return ResponseEntity.status(500).body(Map.of("success", false, "message", "Error al preparar el pago: " + e.getMessage()));
         }
     }
 

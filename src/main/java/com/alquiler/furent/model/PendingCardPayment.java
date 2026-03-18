@@ -2,23 +2,19 @@ package com.alquiler.furent.model;
 
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
-import org.springframework.data.mongodb.core.index.Indexed;
+
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 /**
  * Cotización pendiente de pago con tarjeta.
- * La reserva solo se crea cuando Stripe confirma el pago (webhook).
  */
-@Document(collection = "pagos_tarjeta_pendientes")
+@Document(collection = "pagos_pendientes_v2")
 public class PendingCardPayment {
 
     @Id
     private String id;
-
-    @Indexed(unique = true)
-    private String stripePaymentIntentId;
 
     private String tenantId;
     private String usuarioId;
@@ -33,8 +29,6 @@ public class PendingCardPayment {
 
     public String getId() { return id; }
     public void setId(String id) { this.id = id; }
-    public String getStripePaymentIntentId() { return stripePaymentIntentId; }
-    public void setStripePaymentIntentId(String stripePaymentIntentId) { this.stripePaymentIntentId = stripePaymentIntentId; }
     public String getTenantId() { return tenantId; }
     public void setTenantId(String tenantId) { this.tenantId = tenantId; }
     public String getUsuarioId() { return usuarioId; }

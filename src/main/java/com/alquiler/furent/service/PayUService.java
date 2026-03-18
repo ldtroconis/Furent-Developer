@@ -33,11 +33,28 @@ public class PayUService {
         return md5(input);
     }
     
-    public String generateConfirmationSignature(String referenceCode, BigDecimal amount, String currency, String statePol) {
+    public String generateConfirmationSignature(String referenceCode, BigDecimal amount, String currency, int statePol) {
         // Firma de confirmación Webhook: MD5(ApiKey~merchant_id~reference_sale~new_value~currency~state_pol)
-        // El new_value debe tener las posiciones decimales de acuerdo a lo reportado en tv_value de confirmación,
-        // pero vamos a usar un truncamiento seguro o el amount tal cual viene en la solicitud para validarlo.
-        return null; // Will implement properly in webhook check
+        // El new_value debe tener las posiciones decimales de acuerdo a lo reportado en tv_value de confirmación.
+        // PayU recomienda usar un formato específico para el monto.
+        
+        // Formatear monto: si es entero (como 150000), dejar como 150000.0 si PayU lo manda así, 
+        // pero usualmente PayU manda el valor exacto con un decimal si es .0
+        String amountFormatted = amount.setScale(1, RoundingMode.HALF_UP).toString();
+        if (amountFormatted.endsWith(".0")) {
+            // A veces PayU lo manda sin el .0 en la firma v4.0, pero en v2 es con .1
+            // Intentaremos coincidir con el valor que viene en el request.
+        }
+
+        String input = String.format("%s~%s~%s~%s~%s~%d", 
+                payUProperties.getApiKey(), 
+                payUProperties.getMerchantId(), 
+                referenceCode, 
+                amount.setScale(1, RoundingMode.HALF_UP).toString(), 
+                currency,
+                statePol);
+        
+        return md5(input);
     }
 
     public static String md5(String input) {
