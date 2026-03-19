@@ -628,8 +628,13 @@
 
             const id = btn.dataset.id;
             const existing = bag.find(item => item.id === id);
+            
             if (existing) {
                 bag = bag.filter(item => item.id !== id);
+                showToast({
+                    message: `¡${btn.dataset.name} removido de la bolsa!`,
+                    type: 'danger'
+                });
             } else {
                 bag.push({ 
                     id: btn.dataset.id, 
@@ -638,6 +643,10 @@
                     image: btn.dataset.image, 
                     qty: 1,
                     maxStock: parseInt(btn.dataset.stock) || 0
+                });
+                showToast({
+                    message: `¡${btn.dataset.name} agregado a la bolsa!`,
+                    type: 'success'
                 });
                 // Counter bounce animation
                 bagCount.style.animation = 'bagBounce 0.3s ease';
@@ -656,25 +665,11 @@
                 if (item) {
                     if (action === 'increase') { 
                         if (item.maxStock && item.qty >= item.maxStock) {
-                        Swal.fire({
-                            title: 'Límite de stock',
-                            html: `Solo hay <b class="text-furent-600">${item.maxStock}</b> unidades disponibles de "${item.name}".`,
-                            iconHtml: `
-                                <div class="w-16 h-16 rounded-full bg-amber-50 flex items-center justify-center text-amber-500 shadow-inner">
-                                    <svg class="w-8 h-8" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
-                                    </svg>
-                                </div>`,
-                            confirmButtonColor: '#E07A3A',
-                            confirmButtonText: 'Entendido',
-                            customClass: {
-                                popup: 'rounded-[1.5rem] shadow-2xl border-0',
-                                title: 'text-xl font-bold tracking-tight',
-                                icon: 'border-0 p-0 mb-4'
-                            },
-                            timer: 3500,
-                            timerProgressBar: true
-                        });
+                            showModal({
+                                title: 'Límite de stock',
+                                message: `Solo hay ${item.maxStock} unidades disponibles de "${item.name}".`,
+                                type: 'warning'
+                            });
                         } else {
                             item.qty++; 
                             bagCount.style.animation = 'bagBounce 0.3s ease'; 
@@ -687,7 +682,17 @@
                 updateBagUI();
             }
             const removeBtn = e.target.closest('.bag-remove-btn');
-            if (removeBtn) { bag = bag.filter(i => i.id !== removeBtn.dataset.id); updateBagUI(); }
+            if (removeBtn) { 
+                const removedItem = bag.find(i => i.id === removeBtn.dataset.id);
+                bag = bag.filter(i => i.id !== removeBtn.dataset.id); 
+                updateBagUI(); 
+                if (removedItem) {
+                    showToast({
+                        message: `¡${removedItem.name} removido de la bolsa!`,
+                        type: 'danger'
+                    });
+                }
+            }
         });
 
         // Toggle bag panel
@@ -733,27 +738,11 @@
             if (cb.checked) {
                 if (compareList.length >= MAX_COMPARE) {
                     cb.checked = false;
-                if (typeof Swal !== 'undefined') {
-                    Swal.fire({
-                        title: 'Máximo ' + MAX_COMPARE,
-                        text: 'Solo puedes comparar hasta ' + MAX_COMPARE + ' productos a la vez.',
-                        iconHtml: `
-                            <div class="w-16 h-16 rounded-full bg-furent-50 flex items-center justify-center text-furent-500 shadow-inner">
-                                <svg class="w-8 h-8" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z" />
-                                </svg>
-                            </div>`,
-                        confirmButtonText: 'Entendido',
-                        confirmButtonColor: '#E07A3A',
-                        customClass: {
-                            popup: 'rounded-[1.5rem] border-0 shadow-2xl',
-                            title: 'text-xl font-bold tracking-tight',
-                            icon: 'border-0 p-0 mb-4'
-                        },
-                        timer: 2500,
-                        showConfirmButton: false
+                    showToast({
+                        title: 'Límite alcanzado',
+                        message: `Solo puedes comparar hasta ${MAX_COMPARE} productos.`,
+                        type: 'warning'
                     });
-                }
                     return;
                 }
                 compareList.push({ id, name: cb.dataset.name, price: parseFloat(cb.dataset.price), image: cb.dataset.image, category: cb.dataset.category, material: cb.dataset.material, rating: parseFloat(cb.dataset.rating), stock: parseInt(cb.dataset.stock), available: cb.dataset.available === 'true' });

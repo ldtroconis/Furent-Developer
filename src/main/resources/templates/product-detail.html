@@ -1248,13 +1248,10 @@
                 if (item) {
                     if (action === 'increase') { 
                         if (item.maxStock && item.qty >= item.maxStock) {
-                            Swal.fire({
-                                icon: 'warning',
+                            showModal({
                                 title: 'Límite de stock',
-                                text: `Solo hay ${item.maxStock} unidades disponibles de "${item.name}".`,
-                                confirmButtonColor: '#E07A3A',
-                                timer: 3000,
-                                timerProgressBar: true
+                                message: `Solo hay ${item.maxStock} unidades disponibles de "${item.name}".`,
+                                type: 'warning'
                             });
                         } else {
                             item.qty++; 
@@ -1290,7 +1287,12 @@
             const qty = parseInt(qtyInput.value) || 1;
             
             if (qty > productData.maxStock) {
-                showToast(`Solo contamos con ${productData.maxStock} unidades disponibles.`, 'error');
+                showModal({
+                    title: 'Límite de stock',
+                    message: `Solo contamos con ${productData.maxStock} unidades disponibles de "${productData.name}".`,
+                    type: 'warning',
+                    footer: 'Por favor, ajusta tu pedido según la disponibilidad.'
+                });
                 return;
             }
 
@@ -1298,6 +1300,10 @@
             if (existing) {
                 existing.qty = qty;
                 existing.maxStock = productData.maxStock; 
+                showToast({
+                    message: `¡Cantidad de ${productData.name} actualizada!`,
+                    type: 'success'
+                });
             } else {
                 bag.push({ 
                     id: String(productData.id), 
@@ -1306,6 +1312,10 @@
                     image: productData.image, 
                     qty: qty,
                     maxStock: productData.maxStock
+                });
+                showToast({
+                    message: `¡${productData.name} agregado a la bolsa!`,
+                    type: 'success'
                 });
             }
             // Animate counter
