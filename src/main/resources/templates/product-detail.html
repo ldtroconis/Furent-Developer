@@ -910,137 +910,107 @@
                 </div>
             </div>
 
-            <!-- REVIEWS SECTION - EXPANSIVE & PROFESSIONAL -->
-            <div id="reviews-section" class="mt-32 pt-24 border-t border-surface-100 w-full">
-                <div class="grid grid-cols-1 lg:grid-cols-12 gap-16 lg:gap-24">
+            <!-- REVIEWS SECTION - INSPIRED BY SECOND IMAGE -->
+            <div id="reviews-section" class="mt-32 pt-16 border-t border-surface-200 w-full">
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-20">
+                    
                     <!-- Left column: Summary & CTA -->
                     <div class="lg:col-span-4 sticky top-[100px] h-fit">
-                        <h2 class="text-4xl font-black text-surface-900 tracking-tight leading-tight mb-6">Lo que dicen <br>nuestros clientes</h2>
-                        <p class="text-surface-500 text-lg mb-10 leading-relaxed">Tu opinión es fundamental para nosotros. Ayúdanos a mejorar compartiendo tu experiencia.</p>
+                        <h2 class="text-2xl font-black text-surface-900 mb-2">Opiniones de clientes</h2>
+                        
+                        <div class="flex items-center gap-3 mb-8">
+                            <div class="flex items-center gap-0.5 text-amber-400">
+                                <svg th:each="i : ${#numbers.sequence(1, 5)}" class="w-5 h-5 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+                            </div>
+                            <span class="text-sm font-medium text-surface-500" th:text="'Basado en ' + ${totalReviews} + ' reseñas'">Basado en 0 reseñas</span>
+                        </div>
 
-                        <div class="bg-surface-50 rounded-[2.5rem] p-10 border border-surface-100 mb-8 overflow-hidden relative">
-                            <div class="relative z-10">
-                                <div class="flex items-center gap-4 mb-4">
-                                    <span class="text-7xl font-black text-surface-900" th:text="${#numbers.formatDecimal(avgRating, 1, 'POINT', 1, 'POINT')}">4.8</span>
-                                    <div>
-                                        <div class="flex items-center gap-0.5 text-amber-400 mb-1">
-                                            <svg th:each="i : ${#numbers.sequence(1, 5)}" class="w-5 h-5 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
-                                        </div>
-                                        <p class="text-sm font-bold text-surface-600" th:text="'Promedio de ' + ${totalReviews} + ' reseñas'"></p>
-                                    </div>
+                        <!-- Rating Bars -->
+                        <div class="space-y-4 mb-12">
+                            <div th:each="star : ${#numbers.sequence(5, 1, -1)}" class="flex items-center gap-4 group cursor-default">
+                                <div class="flex items-center gap-1 w-8">
+                                    <span class="text-sm font-bold text-surface-700" th:text="${star}">5</span>
+                                    <svg class="w-4 h-4 text-amber-400 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
                                 </div>
-                                <div class="space-y-3">
-                                    <div class="flex items-center gap-3">
-                                        <span class="text-xs font-bold text-surface-400 w-16">Excelente</span>
-                                        <div class="flex-1 h-1.5 bg-white rounded-full overflow-hidden border border-surface-100"><div class="h-full bg-green-500" style="width: 85%"></div></div>
-                                        <span class="text-xs font-bold text-surface-600">85%</span>
-                                    </div>
-                                    <div class="flex items-center gap-3">
-                                        <span class="text-xs font-bold text-surface-400 w-16">Bueno</span>
-                                        <div class="flex-1 h-1.5 bg-white rounded-full overflow-hidden border border-surface-100"><div class="h-full bg-furent-400" style="width: 12%"></div></div>
-                                        <span class="text-xs font-bold text-surface-600">12%</span>
-                                    </div>
-                                    <div class="flex items-center gap-3">
-                                        <span class="text-xs font-bold text-surface-400 w-16">Regular</span>
-                                        <div class="flex-1 h-1.5 bg-white rounded-full overflow-hidden border border-surface-100"><div class="h-full bg-amber-400" style="width: 3%"></div></div>
-                                        <span class="text-xs font-bold text-surface-600">3%</span>
-                                    </div>
+                                <div class="flex-1 h-3 bg-surface-100 rounded-full overflow-hidden">
+                                    <div class="h-full bg-amber-400 rounded-full transition-all duration-1000 group-hover:bg-amber-500" 
+                                         th:style="'width: ' + (${star == 5 ? 85 : (star == 4 ? 12 : (star == 3 ? 3 : 0))}) + '%'"></div>
                                 </div>
+                                <span class="text-sm font-bold text-surface-400 w-10 text-right" th:text="(${star == 5 ? '85' : (star == 4 ? '12' : (star == 3 ? '3' : '0'))}) + '%'">0%</span>
                             </div>
                         </div>
 
-                        <button onclick="document.getElementById('reviewFormContainer').classList.toggle('hidden')" class="group w-full py-5 bg-surface-900 text-white rounded-3xl text-sm font-black shadow-xl hover:bg-black transition-all flex items-center justify-center gap-3 active:scale-[0.98]">
-                            <svg class="w-5 h-5 group-hover:rotate-12 transition-transform" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10"/></svg>
-                            Escribir reseña ahora
-                        </button>
+                        <!-- CTA Section -->
+                        <div class="pt-8 border-t border-surface-100">
+                            <h3 class="text-lg font-bold text-surface-900 mb-2">Comparte tu experiencia</h3>
+                            <p class="text-sm text-surface-500 mb-6 font-medium">Si has alquilado este mobiliario antes, cuéntales a los demás qué te pareció.</p>
+                            <button onclick="document.getElementById('reviewFormContainer').classList.toggle('hidden')" 
+                                    class="w-full py-4 bg-white border-2 border-surface-200 text-surface-900 rounded-2xl text-sm font-black hover:border-surface-900 transition-all active:scale-[0.98]">
+                                Escribir una reseña
+                            </button>
+                        </div>
                     </div>
 
                     <!-- Right column: Reviews List -->
                     <div class="lg:col-span-8">
-                    <!-- Bento Premium Availability Calendar -->
-                    <div id="availabilitySection" class="relative group view-compact">
                         <!-- Review Form (Hidden by default) -->
-                        <div id="reviewFormContainer" class="hidden mb-16 bg-white rounded-[3rem] p-10 border border-surface-200 shadow-xl">
-                            <form th:action="@{/producto/reseña}" method="post" class="space-y-8">
+                        <div id="reviewFormContainer" class="hidden mb-16 bg-surface-50 rounded-3xl p-8 border-2 border-dashed border-surface-200">
+                            <form th:action="@{/producto/reseña}" method="post" class="space-y-6">
                                 <input type="hidden" name="productId" th:value="${product.id}">
-                                <div>
-                                    <h4 class="text-xl font-bold text-surface-900 mb-6 flex items-center gap-3">
-                                        <span class="w-8 h-8 rounded-full bg-furent-500 text-white flex items-center justify-center text-sm">1</span>
-                                        ¿Cómo calificarías el producto?
-                                    </h4>
-                                    <div class="flex items-center gap-5">
+                                <div class="flex items-center justify-between">
+                                    <h4 class="text-lg font-bold text-surface-900">Tu valoración</h4>
+                                    <div class="flex items-center gap-1">
                                         <div th:each="i : ${#numbers.sequence(1, 5)}" class="relative">
                                             <input type="radio" name="rating" th:value="${i}" th:id="'star' + ${i}" class="peer hidden" th:checked="${i == 5}" required>
-                                            <label th:for="'star' + ${i}" class="cursor-pointer text-surface-100 peer-checked:text-amber-400 hover:text-amber-300 transition-all">
-                                                <svg class="w-12 h-12" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+                                            <label th:for="'star' + ${i}" class="cursor-pointer text-surface-200 peer-checked:text-amber-400 hover:text-amber-300 transition-all">
+                                                <svg class="w-8 h-8" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
                                             </label>
                                         </div>
                                     </div>
                                 </div>
-                                <div>
-                                    <h4 class="text-xl font-bold text-surface-900 mb-6 flex items-center gap-3">
-                                        <span class="w-8 h-8 rounded-full bg-furent-500 text-white flex items-center justify-center text-sm">2</span>
-                                        Cuéntanos más detalles
-                                    </h4>
-                                    <textarea id="comment" name="comment" rows="5" required placeholder="Habla sobre la calidad, el estado, el color, si fue fácil de combinar..." class="w-full px-8 py-6 bg-surface-50 border border-surface-200 rounded-[2rem] text-lg focus:bg-white focus:ring-8 focus:ring-furent-500/10 focus:border-furent-500 transition-all resize-none shadow-inner"></textarea>
-                                </div>
-                                <div class="flex justify-end gap-5 pt-4 border-t border-surface-100">
-                                    <button type="button" onclick="document.getElementById('reviewFormContainer').classList.add('hidden')" class="px-8 py-3 text-base font-bold text-surface-500 hover:text-surface-900 transition-colors">Cancelar</button>
-                                    <button type="submit" class="px-10 py-4 bg-furent-600 text-white rounded-2xl text-base font-black shadow-lg shadow-furent-500/30 hover:bg-furent-700 hover:-translate-y-1 transition-all">Enviar Opinión</button>
+                                <textarea id="comment" name="comment" rows="4" required placeholder="Describe tu experiencia..." 
+                                          class="w-full px-6 py-4 bg-white border border-surface-200 rounded-2xl text-base focus:ring-4 focus:ring-amber-400/10 focus:border-amber-400 transition-all resize-none shadow-sm"></textarea>
+                                <div class="flex justify-end gap-4">
+                                    <button type="button" onclick="document.getElementById('reviewFormContainer').classList.add('hidden')" class="px-6 py-2 text-sm font-bold text-surface-500">Cancelar</button>
+                                    <button type="submit" class="px-8 py-3 bg-furent-600 text-white rounded-xl text-sm font-black shadow-lg">Publicar</button>
                                 </div>
                             </form>
                         </div>
 
-                        <!-- Filters -->
-                        <div th:if="${not #lists.isEmpty(reviews)}" class="flex gap-4 mb-12 overflow-x-auto pb-4 scrollbar-hide">
-                            <button onclick="filterReviews('all')" class="review-btn active px-8 py-3 rounded-2xl text-sm font-black bg-surface-900 text-white shadow-xl whitespace-nowrap transition-all">Todas las experiencias</button>
-                            <button onclick="filterReviews('excellent')" class="review-btn px-8 py-3 rounded-2xl text-sm font-black bg-white text-surface-500 border border-surface-100 hover:border-surface-300 whitespace-nowrap transition-all">5 Estrellas ✨</button>
-                            <button onclick="filterReviews('good')" class="review-btn px-8 py-3 rounded-2xl text-sm font-black bg-white text-surface-500 border border-surface-100 hover:border-surface-300 whitespace-nowrap transition-all">4 & 3 Estrellas</button>
-                        </div>
-
-                        <!-- Reviews List -->
-                        <div id="reviewsList" class="space-y-10">
+                        <!-- List of actual reviews -->
+                        <div id="reviewsList" class="divide-y divide-surface-200">
                             <!-- Empty state -->
-                            <div th:if="${#lists.isEmpty(reviews)}" class="py-24 flex flex-col items-center justify-center text-center text-surface-300 bg-surface-50 rounded-[3rem] border border-surface-100 shadow-inner">
-                                <div class="w-24 h-24 bg-white rounded-full flex items-center justify-center shadow-lg mb-8">
-                                    <svg class="w-12 h-12 text-surface-100" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 8h2a2 2 0 012 2v6a2 2 0 01-2 2h-2v4l-4-4H9a1.994 1.994 0 01-1.414-.586m0 0L11 14h4a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2v4l.586-.586z"/></svg>
-                                </div>
-                                <p class="text-2xl font-black text-surface-900 mb-2">Aún no hay historias para este mueble</p>
-                                <p class="text-surface-400 max-w-sm mx-auto">Sé el primero en alquilar y compartir fotos y detalles reales con la comunidad.</p>
+                            <div th:if="${#lists.isEmpty(reviews)}" class="py-12 text-center bg-surface-50 rounded-3xl border-2 border-dashed border-surface-200">
+                                <p class="text-surface-500 font-bold">Aún no hay opiniones. ¡Sé el primero!</p>
                             </div>
 
-                            <!-- Individual Card -->
-                            <div th:each="rev, iterStat : ${reviews}" class="review-card bg-white rounded-[2.5rem] p-10 border border-surface-100 hover:border-furent-200 transition-all duration-500 group relative" th:data-rating="${rev.rating}" th:classappend="${iterStat.index >= 4 ? 'hidden' : ''}">
-                                <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8">
-                                    <div class="flex items-center gap-5">
-                                        <div class="w-16 h-16 rounded-full bg-gradient-to-br from-furent-50 to-furent-100 border-4 border-white shadow-xl flex items-center justify-center font-black text-furent-700 text-2xl" th:text="${#strings.substring(rev.userName,0,1)}">U</div>
-                                        <div>
-                                            <h4 class="font-black text-surface-900 text-xl" th:text="${rev.userName}">Nombre de Usuario</h4>
-                                            <div class="flex items-center gap-1.5 mt-1">
-                                                <div class="flex items-center text-amber-400">
-                                                    <svg th:each="i : ${#numbers.sequence(1, 5)}" class="w-4 h-4" th:classappend="${i <= rev.rating ? 'fill-current' : 'text-surface-200 fill-current'}" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
-                                                </div>
-                                                <span class="w-1 h-1 bg-surface-300 rounded-full mx-1"></span>
-                                                <span class="text-xs font-bold text-surface-400 uppercase tracking-widest" th:text="${#temporals.format(rev.createdAt, 'dd MMM. yyyy')}">Enero 2024</span>
-                                            </div>
+                            <div th:each="rev, iterStat : ${reviews}" 
+                                 class="review-card py-10 first:pt-0 last:pb-0 group" 
+                                 th:data-rating="${rev.rating}" 
+                                 th:classappend="${iterStat.index >= 5 ? 'hidden' : ''}">
+                                
+                                <div class="flex items-start gap-4 mb-4">
+                                    <div class="w-12 h-12 rounded-full overflow-hidden bg-surface-100 flex items-center justify-center font-black text-surface-400 border border-surface-200">
+                                        <span th:text="${#strings.substring(rev.userName,0,1)}">U</span>
+                                    </div>
+                                    <div>
+                                        <h4 class="font-bold text-surface-900" th:text="${rev.userName}">Usuario</h4>
+                                        <div class="flex items-center gap-1 text-amber-400 mt-1">
+                                            <svg th:each="i : ${#numbers.sequence(1, 5)}" class="w-4 h-4" th:classappend="${i <= rev.rating ? 'fill-current' : 'text-surface-200 fill-current'}" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
                                         </div>
                                     </div>
-                                    <div class="flex gap-2">
-                                        <span class="px-4 py-1.5 bg-green-50 text-green-700 text-[10px] font-black uppercase tracking-widest rounded-full border border-green-100 flex items-center gap-1.5">
-                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
-                                            Inquilino Verificado
-                                        </span>
-                                    </div>
                                 </div>
-                                <p class="text-surface-600 text-lg leading-relaxed font-medium pl-2 border-l-4 border-furent-100 ml-1" th:text="${rev.comment}">Comentario detallado del cliente sobre su experiencia con el producto.</p>
+                                <div class="pl-16">
+                                    <p class="text-surface-600 leading-relaxed italic" th:text="'&quot;' + ${rev.comment} + '&quot;'"></p>
+                                    <p class="text-[10px] font-black uppercase tracking-widest text-surface-400 mt-4" th:text="${#temporals.format(rev.createdAt, 'dd MMM. yyyy')}"></p>
+                                </div>
                             </div>
                         </div>
 
                         <!-- View More Button -->
-                        <div class="mt-16 text-center" th:if="${#lists.size(reviews) > 4}">
-                            <button id="toggleReviewsBtn" onclick="toggleReviews()" class="group inline-flex items-center gap-3 px-10 py-4 bg-white border-2 border-surface-900 rounded-3xl text-sm font-black text-surface-900 hover:bg-surface-900 hover:text-white transition-all shadow-xl active:scale-95">
-                                <span>Leer todas las reseñas</span>
-                                <svg class="w-5 h-5 transition-transform group-hover:translate-y-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/></svg>
+                        <div class="mt-12" th:if="${#lists.size(reviews) > 5}">
+                            <button id="toggleReviewsBtn" onclick="toggleReviews()" class="text-sm font-black text-surface-900 border-b-2 border-surface-900 pb-1 hover:text-furent-600 hover:border-furent-600 transition-all">
+                                Leer todas las reseñas
                             </button>
                         </div>
                     </div>
@@ -1395,28 +1365,66 @@
             }
         }
 
+        function filterReviews(type) {
+            const btns = document.querySelectorAll('.review-btn');
+            btns.forEach(b => {
+                b.classList.remove('bg-surface-900', 'text-white', 'shadow-xl', 'active');
+                b.classList.add('bg-white', 'text-surface-500', 'border-surface-100');
+            });
+            const activeBtn = event.currentTarget;
+            if (activeBtn) {
+                activeBtn.classList.add('bg-surface-900', 'text-white', 'shadow-xl', 'active');
+                activeBtn.classList.remove('bg-white', 'text-surface-500', 'border-surface-100');
+            }
+
+            const cards = document.querySelectorAll('.review-card');
+            let visibleCount = 0;
+
+            cards.forEach((card) => {
+                const rating = parseInt(card.getAttribute('data-rating'));
+                let show = false;
+
+                if (type === 'all') show = true;
+                else if (type === 'excellent' && rating === 5) show = true;
+                else if (type === 'good' && (rating === 3 || rating === 4)) show = true;
+
+                if (show) {
+                    if(type === 'all' && !allReviewsVisible && visibleCount >= 5) {
+                        card.classList.add('hidden');
+                    } else {
+                        card.classList.remove('hidden');
+                    }
+                    visibleCount++;
+                } else {
+                    card.classList.add('hidden');
+                }
+            });
+            
+            const toggleBtn = document.getElementById('toggleReviewsBtn');
+            if(toggleBtn) {
+                if(type !== 'all' || visibleCount <= 5) {
+                    toggleBtn.classList.add('hidden');
+                } else {
+                    toggleBtn.classList.remove('hidden');
+                }
+            }
+        }
+
         function toggleReviews() {
             const btn = document.getElementById('toggleReviewsBtn');
-            const span = btn.querySelector('span');
-            const icon = btn.querySelector('svg');
-
             if (!allReviewsVisible) {
                 document.querySelectorAll('.review-card').forEach(c => {
                     c.classList.remove('hidden');
-                    c.classList.add('flex');
                 });
-                span.innerHTML = 'Mostrar menos testimonios';
-                icon.classList.add('rotate-180');
+                btn.innerHTML = 'Mostrar menos testimonios';
                 allReviewsVisible = true;
             } else {
                 document.querySelectorAll('.review-card').forEach((c, index) => {
-                    if(index >= 4) {
+                    if(index >= 5) {
                         c.classList.add('hidden');
-                        c.classList.remove('flex');
                     }
                 });
-                span.innerHTML = 'Leer todas las reseñas';
-                icon.classList.remove('rotate-180');
+                btn.innerHTML = 'Leer todas las reseñas';
                 allReviewsVisible = false;
             }
         }
