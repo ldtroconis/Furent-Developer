@@ -126,6 +126,132 @@
         </div>
     </div>
 
+    <!-- ============================== -->
+    <!-- EVENT DETAILS DIALOG           -->
+    <!-- ============================== -->
+    <el-dialog>
+      <dialog id="eventDialog" aria-labelledby="eventDialog-title" class="fixed inset-0 size-auto max-h-none max-w-none overflow-y-auto bg-transparent backdrop:bg-transparent focus:outline-none">
+        <el-dialog-backdrop class="fixed inset-0 bg-surface-950/40 backdrop-blur-sm transition-opacity data-closed:opacity-0 data-enter:duration-300 data-enter:ease-out data-leave:duration-200 data-leave:ease-in"></el-dialog-backdrop>
+        <div tabindex="0" class="flex min-h-full items-center justify-center p-4 focus:outline-none">
+          <el-dialog-panel class="relative transform overflow-hidden rounded-2xl bg-white text-left shadow-2xl border border-surface-100 transition-all data-closed:translate-y-4 data-closed:opacity-0 data-closed:sm:translate-y-0 data-closed:sm:scale-95 data-enter:duration-300 data-enter:ease-out data-leave:duration-200 data-leave:ease-in sm:w-full sm:max-w-2xl">
+            <!-- Header (colored) -->
+            <div id="eventDialog-header" class="px-6 py-5 relative">
+              <button type="button" onclick="closeEventDialog()" class="absolute top-4 right-4 z-10 w-8 h-8 rounded-lg bg-white/20 hover:bg-white/30 flex items-center justify-center text-white transition-colors">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+              </button>
+              <div class="flex items-center justify-between pr-10">
+                <div>
+                  <p class="text-[10px] font-bold uppercase tracking-[0.15em] text-white/70">Operación logística</p>
+                  <h3 id="eventDialog-title" class="text-xl font-extrabold text-white mt-1"></h3>
+                  <p id="eventDialog-client" class="text-sm text-white/90 font-medium mt-1"></p>
+                </div>
+                <div class="text-right">
+                  <p class="text-[10px] font-bold uppercase tracking-[0.15em] text-white/70">Fecha</p>
+                  <p id="eventDialog-date" class="text-sm font-bold text-white mt-1"></p>
+                </div>
+              </div>
+            </div>
+            <!-- Body -->
+            <div class="p-6 space-y-4 max-h-[65vh] overflow-y-auto custom-scrollbar">
+              <!-- Client + Reservation -->
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div class="rounded-xl border border-surface-200 p-4 bg-surface-50/50">
+                  <div class="flex items-center gap-2 mb-2">
+                    <svg class="w-4 h-4 text-surface-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z"/></svg>
+                    <p class="text-[10px] font-bold uppercase tracking-widest text-surface-400">Cliente</p>
+                  </div>
+                  <p id="eventDialog-clientName" class="text-sm font-bold text-surface-900"></p>
+                  <p id="eventDialog-clientEmail" class="text-xs text-surface-500 mt-1"></p>
+                  <p id="eventDialog-clientPhone" class="text-xs text-surface-500"></p>
+                </div>
+                <div class="rounded-xl border border-surface-200 p-4 bg-surface-50/50">
+                  <div class="flex items-center gap-2 mb-2">
+                    <svg class="w-4 h-4 text-surface-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 6v.75m0 3v.75m0 3v.75m0 3V18m-9-5.25h5.25M7.5 15h3M3.375 5.25c-.621 0-1.125.504-1.125 1.125v3.026a2.999 2.999 0 010 5.198v3.026c0 .621.504 1.125 1.125 1.125h17.25c.621 0 1.125-.504 1.125-1.125v-3.026a2.999 2.999 0 010-5.198V6.375c0-.621-.504-1.125-1.125-1.125H3.375z"/></svg>
+                    <p class="text-[10px] font-bold uppercase tracking-widest text-surface-400">Reserva</p>
+                  </div>
+                  <p id="eventDialog-reservaId" class="text-xs font-bold text-surface-900 font-mono"></p>
+                  <p id="eventDialog-reservaEstado" class="text-xs text-surface-500 mt-1"></p>
+                  <p id="eventDialog-reservaHora" class="text-xs text-surface-500 hidden"></p>
+                </div>
+              </div>
+              <!-- Address -->
+              <div class="rounded-xl border border-surface-200 p-4">
+                <div class="flex items-center justify-between mb-1">
+                  <div class="flex items-center gap-2">
+                    <svg class="w-4 h-4 text-surface-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z"/></svg>
+                    <p class="text-[10px] font-bold uppercase tracking-widest text-surface-400">Dirección</p>
+                  </div>
+                  <a id="eventDialog-mapsLink" href="#" target="_blank" class="text-[10px] font-bold text-blue-600 hover:text-blue-800 uppercase tracking-wider hidden">Abrir mapa ↗</a>
+                </div>
+                <p id="eventDialog-address" class="text-sm font-semibold text-surface-800"></p>
+              </div>
+              <!-- Notes -->
+              <div class="rounded-xl border border-surface-200 p-4">
+                <div class="flex items-center gap-2 mb-1">
+                  <svg class="w-4 h-4 text-surface-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"/></svg>
+                  <p class="text-[10px] font-bold uppercase tracking-widest text-surface-400">Notas</p>
+                </div>
+                <p id="eventDialog-notes" class="text-sm text-surface-600 whitespace-pre-line"></p>
+              </div>
+              <!-- Items table -->
+              <div class="rounded-xl border border-surface-200 overflow-hidden">
+                <table class="w-full">
+                  <thead class="bg-surface-50">
+                    <tr>
+                      <th class="px-4 py-2.5 text-left text-[10px] font-bold uppercase tracking-widest text-surface-400">Producto</th>
+                      <th class="px-4 py-2.5 text-center text-[10px] font-bold uppercase tracking-widest text-surface-400">Cant.</th>
+                    </tr>
+                  </thead>
+                  <tbody id="eventDialog-items"></tbody>
+                </table>
+              </div>
+            </div>
+            <!-- Footer -->
+            <div class="bg-surface-50/50 px-6 py-4 flex justify-end gap-2.5 border-t border-surface-100">
+              <button type="button" onclick="closeEventDialog()" class="px-4 py-2.5 rounded-xl text-xs font-bold bg-white border border-surface-200 text-surface-700 hover:bg-surface-50 transition-colors">Cerrar</button>
+              <a id="eventDialog-waBtn" href="#" target="_blank" class="px-4 py-2.5 rounded-xl text-xs font-bold bg-[#1fa952] text-white hover:bg-[#15803d] transition-colors hidden inline-flex items-center gap-1.5">
+                <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.174.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.174-.008-.372-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/></svg>
+                WhatsApp
+              </a>
+            </div>
+          </el-dialog-panel>
+        </div>
+      </dialog>
+    </el-dialog>
+
+    <!-- ============================== -->
+    <!-- ROUTE SHEET EXPORT DIALOG      -->
+    <!-- ============================== -->
+    <el-dialog>
+      <dialog id="routeDialog" aria-labelledby="routeDialog-title" class="fixed inset-0 size-auto max-h-none max-w-none overflow-y-auto bg-transparent backdrop:bg-transparent focus:outline-none">
+        <el-dialog-backdrop class="fixed inset-0 bg-surface-950/40 backdrop-blur-sm transition-opacity data-closed:opacity-0 data-enter:duration-300 data-enter:ease-out data-leave:duration-200 data-leave:ease-in"></el-dialog-backdrop>
+        <div tabindex="0" class="flex min-h-full items-center justify-center p-4 focus:outline-none">
+          <el-dialog-panel class="relative transform overflow-hidden rounded-2xl bg-white text-left shadow-2xl border border-surface-100 transition-all data-closed:translate-y-4 data-closed:opacity-0 data-closed:sm:translate-y-0 data-closed:sm:scale-95 data-enter:duration-300 data-enter:ease-out data-leave:duration-200 data-leave:ease-in sm:w-full sm:max-w-md">
+            <div class="px-6 pt-8 pb-2">
+              <div class="flex items-start gap-4">
+                <div class="w-12 h-12 rounded-2xl bg-surface-100 flex items-center justify-center flex-shrink-0">
+                  <svg class="w-6 h-6 text-surface-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5A3.375 3.375 0 0010.125 2.25H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"/></svg>
+                </div>
+                <div>
+                  <h3 id="routeDialog-title" class="text-lg font-extrabold text-surface-900">Exportar hoja de ruta</h3>
+                  <p class="text-sm text-surface-500 mt-1">Selecciona la fecha operativa para generar el PDF con todas las operaciones programadas.</p>
+                </div>
+              </div>
+              <div class="mt-6">
+                <label class="block text-xs font-bold text-surface-700 mb-2">Fecha</label>
+                <input id="routeDialog-date" type="date" class="h-11 w-full rounded-xl border border-surface-200 px-4 text-sm font-semibold text-surface-800 bg-surface-50 focus:outline-none focus:ring-2 focus:ring-furent-500/20 focus:border-furent-500 transition-all" />
+                <p id="routeDialog-error" class="text-xs text-red-600 font-semibold mt-2 hidden">Debes seleccionar una fecha válida</p>
+              </div>
+            </div>
+            <div class="bg-surface-50/50 px-6 py-4 mt-4 flex sm:flex-row-reverse gap-2.5 border-t border-surface-100">
+              <button type="button" onclick="confirmRouteExport()" class="flex-1 sm:flex-none px-5 py-2.5 rounded-xl text-xs font-bold bg-surface-900 text-white hover:bg-surface-800 transition-colors">Exportar PDF</button>
+              <button type="button" onclick="closeRouteDialog()" class="flex-1 sm:flex-none px-5 py-2.5 rounded-xl text-xs font-bold bg-white border border-surface-200 text-surface-700 hover:bg-surface-50 transition-colors">Cancelar</button>
+            </div>
+          </el-dialog-panel>
+        </div>
+      </dialog>
+    </el-dialog>
+
     <link href='https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.css' rel='stylesheet' />
     <script src='https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js'></script>
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/locales/es.js"></script>
@@ -208,11 +334,7 @@
             color: #d4d4d8 !important;
         }
 
-        /* Weekend highlight */
-        .custom-calendar .fc-day-sat,
-        .custom-calendar .fc-day-sun {
-            /* subtle weekend hint */
-        }
+        /* Weekend day numbers in red */
         .custom-calendar .fc-day-sat .fc-daygrid-day-number,
         .custom-calendar .fc-day-sun .fc-daygrid-day-number {
             color: #ef4444 !important;
@@ -273,9 +395,11 @@
             border: none !important;
         }
 
-        /* SweetAlert custom */
-        .swal-logistica-popup { border-radius: 1.25rem !important; border: 1px solid #e4e4e7 !important; overflow: hidden !important; padding: 0 !important; }
-        .swal-logistica-plain { border-radius: 1rem !important; }
+        /* Dialog animation overrides */
+        dialog[open] { animation: dialogShow 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        dialog.closing { animation: dialogHide 0.2s cubic-bezier(0.7, 0, 0.84, 0) forwards; }
+        @keyframes dialogShow { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes dialogHide { from { opacity: 1; } to { opacity: 0; } }
 
         /* Dark mode calendar overrides */
         html.dark .custom-calendar .fc-col-header-cell { background: #18181b !important; border-bottom-color: #27272a !important; }
@@ -330,97 +454,76 @@
         function buildEventDetailsModal(event) {
             const r = event.extendedProps.reservation || {};
             const isEntrega = event.extendedProps.type === 'entrega';
-            const typeClass = isEntrega ? 'bg-blue-600' : 'bg-amber-500';
             const typeName = isEntrega ? 'Entrega' : 'Retorno';
             const date = event.start ? event.start.toLocaleDateString('es-CO', { weekday: 'short', day: '2-digit', month: 'short', year: 'numeric' }) : 'N/A';
             const mapsUrl = r.direccionEvento ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(r.direccionEvento)}` : null;
             const waPhone = r.usuarioTelefono ? r.usuarioTelefono.replace(/[^0-9+]/g, '') : '';
             const waUrl = waPhone ? `https://wa.me/${encodeURIComponent(waPhone)}?text=${encodeURIComponent(`Hola ${r.usuarioNombre || ''}, te contactamos de logística Furent respecto a tu reserva.`)}` : null;
             const items = Array.isArray(r.items) ? r.items : [];
-            const itemsRows = items.length > 0
-                ? items.map(i => `
+
+            // Populate dialog fields
+            const header = document.getElementById('eventDialog-header');
+            header.className = `px-6 py-5 relative ${isEntrega ? 'bg-blue-600' : 'bg-amber-500'}`;
+            document.getElementById('eventDialog-title').textContent = typeName;
+            document.getElementById('eventDialog-client').textContent = r.usuarioNombre || 'Cliente no identificado';
+            document.getElementById('eventDialog-date').textContent = date;
+
+            document.getElementById('eventDialog-clientName').textContent = r.usuarioNombre || 'Sin nombre';
+            document.getElementById('eventDialog-clientEmail').textContent = r.usuarioEmail || 'Sin email';
+            document.getElementById('eventDialog-clientPhone').textContent = r.usuarioTelefono || 'Sin teléfono';
+
+            document.getElementById('eventDialog-reservaId').textContent = r.id || '-';
+            document.getElementById('eventDialog-reservaEstado').textContent = 'Estado: ' + (r.estado || '-');
+            const horaEl = document.getElementById('eventDialog-reservaHora');
+            if (isEntrega && r.horaEntrega) {
+                horaEl.textContent = 'Hora preferida: ' + r.horaEntrega;
+                horaEl.classList.remove('hidden');
+            } else {
+                horaEl.classList.add('hidden');
+            }
+
+            document.getElementById('eventDialog-address').textContent = r.direccionEvento || 'Dirección no disponible';
+            const mapsLink = document.getElementById('eventDialog-mapsLink');
+            if (mapsUrl) {
+                mapsLink.href = mapsUrl;
+                mapsLink.classList.remove('hidden');
+            } else {
+                mapsLink.classList.add('hidden');
+            }
+
+            document.getElementById('eventDialog-notes').textContent = r.notasEvento || 'Sin notas operativas';
+
+            // Items table
+            const tbody = document.getElementById('eventDialog-items');
+            if (items.length > 0) {
+                tbody.innerHTML = items.map(i => `
                     <tr class="border-b last:border-b-0 border-surface-100">
                         <td class="px-4 py-2.5 text-xs font-bold text-surface-800">${escapeHtml(i.productoNombre || 'Producto')}</td>
                         <td class="px-4 py-2.5 text-center text-xs font-extrabold text-surface-900">${escapeHtml(i.cantidad || 0)}</td>
                     </tr>
-                `).join('')
-                : `<tr><td colspan="2" class="px-4 py-5 text-center text-xs font-semibold text-surface-400">Sin inventario registrado</td></tr>`;
+                `).join('');
+            } else {
+                tbody.innerHTML = '<tr><td colspan="2" class="px-4 py-5 text-center text-xs font-semibold text-surface-400">Sin inventario registrado</td></tr>';
+            }
 
-            Swal.fire({
-                title: '',
-                showConfirmButton: false,
-                showCloseButton: true,
-                width: 700,
-                padding: 0,
-                customClass: {
-                    popup: 'swal-logistica-popup',
-                    closeButton: 'text-white/90 hover:text-white mt-2 mr-2'
-                },
-                html: `
-                    <div class="text-left bg-white">
-                        <div class="${typeClass} px-6 py-5">
-                            <div class="flex items-center justify-between">
-                                <div>
-                                    <p class="text-[10px] font-bold uppercase tracking-[0.15em] text-white/70">Operación logística</p>
-                                    <h3 class="text-xl font-extrabold text-white mt-1">${typeName}</h3>
-                                    <p class="text-sm text-white/90 font-medium mt-1">${escapeHtml(r.usuarioNombre || 'Cliente no identificado')}</p>
-                                </div>
-                                <div class="text-right">
-                                    <p class="text-[10px] font-bold uppercase tracking-[0.15em] text-white/70">Fecha</p>
-                                    <p class="text-sm font-bold text-white mt-1">${escapeHtml(date)}</p>
-                                </div>
-                            </div>
-                        </div>
+            // WhatsApp button
+            const waBtn = document.getElementById('eventDialog-waBtn');
+            if (waUrl) {
+                waBtn.href = waUrl;
+                waBtn.classList.remove('hidden');
+            } else {
+                waBtn.classList.add('hidden');
+            }
 
-                        <div class="p-6 space-y-4">
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                <div class="rounded-xl border border-surface-200 p-3.5 bg-surface-50">
-                                    <p class="text-[10px] font-bold uppercase tracking-widest text-surface-400 mb-1">Cliente</p>
-                                    <p class="text-sm font-bold text-surface-900">${escapeHtml(r.usuarioNombre || 'Sin nombre')}</p>
-                                    <p class="text-xs text-surface-500 mt-1">${escapeHtml(r.usuarioEmail || 'Sin email')}</p>
-                                    <p class="text-xs text-surface-500">${escapeHtml(r.usuarioTelefono || 'Sin teléfono')}</p>
-                                </div>
-                                <div class="rounded-xl border border-surface-200 p-3.5 bg-surface-50">
-                                    <p class="text-[10px] font-bold uppercase tracking-widest text-surface-400 mb-1">Reserva</p>
-                                    <p class="text-xs font-bold text-surface-900">${escapeHtml(r.id || '-')}</p>
-                                    <p class="text-xs text-surface-500 mt-1">Estado: <span class="font-bold">${escapeHtml(r.estado || '-')}</span></p>
-                                    ${isEntrega && r.horaEntrega ? `<p class="text-xs text-surface-500">Hora: <span class="font-bold">${escapeHtml(r.horaEntrega)}</span></p>` : ''}
-                                </div>
-                            </div>
+            // Show dialog
+            const dialog = document.getElementById('eventDialog');
+            dialog.showModal();
+        }
 
-                            <div class="rounded-xl border border-surface-200 p-3.5">
-                                <div class="flex items-center justify-between mb-1">
-                                    <p class="text-[10px] font-bold uppercase tracking-widest text-surface-400">Dirección</p>
-                                    ${mapsUrl ? `<a href="${mapsUrl}" target="_blank" class="text-[10px] font-bold text-blue-600 hover:text-blue-800 uppercase tracking-wider">Abrir mapa ↗</a>` : ''}
-                                </div>
-                                <p class="text-sm font-semibold text-surface-800">${escapeHtml(r.direccionEvento || 'Dirección no disponible')}</p>
-                            </div>
-
-                            <div class="rounded-xl border border-surface-200 p-3.5">
-                                <p class="text-[10px] font-bold uppercase tracking-widest text-surface-400 mb-1">Notas</p>
-                                <p class="text-sm text-surface-600 whitespace-pre-line">${escapeHtml(r.notasEvento || 'Sin notas operativas')}</p>
-                            </div>
-
-                            <div class="rounded-xl border border-surface-200 overflow-hidden">
-                                <table class="w-full">
-                                    <thead class="bg-surface-50">
-                                        <tr>
-                                            <th class="px-4 py-2.5 text-left text-[10px] font-bold uppercase tracking-widest text-surface-400">Producto</th>
-                                            <th class="px-4 py-2.5 text-center text-[10px] font-bold uppercase tracking-widest text-surface-400">Cant.</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>${itemsRows}</tbody>
-                                </table>
-                            </div>
-
-                            <div class="flex justify-end gap-2.5 pt-1">
-                                <button type="button" onclick="Swal.close()" class="px-4 py-2 rounded-xl text-xs font-bold bg-white border border-surface-200 text-surface-700 hover:bg-surface-50 transition-colors">Cerrar</button>
-                                ${waUrl ? `<a href="${waUrl}" target="_blank" class="px-4 py-2 rounded-xl text-xs font-bold bg-[#1fa952] text-white hover:bg-[#15803d] transition-colors">WhatsApp</a>` : ''}
-                            </div>
-                        </div>
-                    </div>
-                `
-            });
+        function closeEventDialog() {
+            const dialog = document.getElementById('eventDialog');
+            dialog.classList.add('closing');
+            setTimeout(() => { dialog.close(); dialog.classList.remove('closing'); }, 200);
         }
 
         function getFilteredEvents(events, dateKey, filterType, searchTerm) {
@@ -534,12 +637,7 @@
             if (!calendar) return;
             const event = calendar.getEventById(eventId);
             if (!event) {
-                Swal.fire({
-                    icon: 'warning',
-                    title: 'Operación no encontrada',
-                    text: 'No fue posible cargar el detalle de la operación seleccionada.',
-                    customClass: { popup: 'swal-logistica-plain' }
-                });
+                showToast('No fue posible cargar el detalle de la operación seleccionada.', 'warning');
                 return;
             }
             buildEventDetailsModal(event);
@@ -560,29 +658,28 @@
         }
 
         function generateRouteSheet() {
-            Swal.fire({
-                title: 'Exportar hoja de ruta',
-                text: 'Selecciona la fecha operativa',
-                input: 'date',
-                inputValue: getLocalToday(),
-                showCancelButton: true,
-                confirmButtonText: 'Exportar PDF',
-                cancelButtonText: 'Cancelar',
-                confirmButtonColor: '#18181b',
-                customClass: {
-                    popup: 'swal-logistica-plain',
-                    confirmButton: 'rounded-xl font-bold text-xs px-5 py-2.5',
-                    cancelButton: 'rounded-xl font-bold text-xs px-5 py-2.5'
-                },
-                inputValidator: function(value) {
-                    if (!value) return 'Debes seleccionar una fecha válida';
-                    return null;
-                }
-            }).then(function(result) {
-                if (result.isConfirmed && result.value) {
-                    window.location.href = '/admin/logistica/hoja-ruta?fecha=' + encodeURIComponent(result.value);
-                }
-            });
+            const dateInput = document.getElementById('routeDialog-date');
+            dateInput.value = getLocalToday();
+            document.getElementById('routeDialog-error').classList.add('hidden');
+            document.getElementById('routeDialog').showModal();
+        }
+
+        function confirmRouteExport() {
+            const dateInput = document.getElementById('routeDialog-date');
+            const errorEl = document.getElementById('routeDialog-error');
+            if (!dateInput.value) {
+                errorEl.classList.remove('hidden');
+                return;
+            }
+            errorEl.classList.add('hidden');
+            closeRouteDialog();
+            window.location.href = '/admin/logistica/hoja-ruta?fecha=' + encodeURIComponent(dateInput.value);
+        }
+
+        function closeRouteDialog() {
+            const dialog = document.getElementById('routeDialog');
+            dialog.classList.add('closing');
+            setTimeout(() => { dialog.close(); dialog.classList.remove('closing'); }, 200);
         }
 
         document.addEventListener('DOMContentLoaded', function() {
@@ -593,12 +690,7 @@
             const searchInput = document.getElementById('logisticaSearch');
 
             if (!Array.isArray(reservas) || !calendarEl) {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'No se pudo cargar logística',
-                    text: 'Faltan datos para renderizar el calendario de operaciones.',
-                    customClass: { popup: 'swal-logistica-plain' }
-                });
+                showToast('Faltan datos para renderizar el calendario de operaciones.', 'error');
                 return;
             }
 

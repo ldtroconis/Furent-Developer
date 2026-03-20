@@ -19,6 +19,7 @@ import org.springframework.stereotype.Service;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import com.alquiler.furent.exception.AccountSuspendedException;
@@ -106,7 +107,34 @@ public class UserService implements UserDetailsService {
                 Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + user.getRole())));
     }
 
+    private static final Set<String> ALLOWED_EMAIL_DOMAINS = Set.of(
+            "gmail.com", "outlook.com", "outlook.es", "hotmail.com", "hotmail.es", "live.com"
+    );
+
     public User register(String email, String password, String nombre, String apellido, String telefono) {
+        // Validate email domain
+        if (email == null || !email.contains("@")) {
+            throw new RuntimeException("Formato de email inválido");
+        }
+        String domain = email.substring(email.indexOf('@') + 1).toLowerCase();
+        if (!ALLOWED_EMAIL_DOMAINS.contains(domain)) {
+            throw new RuntimeException("Solo aceptamos correos de Gmail, Outlook o Hotmail");
+        }
+
+        // Validate password strength (must pass at least 3 of 5 rules)
+        if (password == null || password.length() < 8) {
+            throw new RuntimeException("La contraseña debe tener al menos 8 caracteres");
+        }
+        int score = 0;
+        if (password.length() >= 8) score++;
+        if (password.chars().anyMatch(Character::isUpperCase)) score++;
+        if (password.chars().anyMatch(Character::isLowerCase)) score++;
+        if (password.chars().anyMatch(Character::isDigit)) score++;
+        if (password.chars().anyMatch(c -> !Character.isLetterOrDigit(c))) score++;
+        if (score < 3) {
+            throw new RuntimeException("La contraseña es muy débil. Incluye mayúsculas, minúsculas, números y caracteres especiales.");
+        }
+
         if (userRepository.existsByEmail(email)) {
             log.warn("Intento de registro con email duplicado: {}", email);
             throw new DuplicateResourceException("El email ya está registrado");
