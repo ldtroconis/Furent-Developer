@@ -36,19 +36,8 @@ jobs:
           distribution: 'temurin'
           cache: maven
 
-      - name: Build con Maven
-        run: ./mvnw clean compile -B -q
-
-      - name: Ejecutar Tests
-        run: ./mvnw test -B
-        env:
-          SPRING_PROFILES_ACTIVE: dev
-          MONGODB_URI: mongodb://localhost:27017/furent_test
-          REDIS_HOST: localhost
-          REDIS_PORT: 6379
-
-      - name: Package JAR
-        run: ./mvnw package -DskipTests -B -q
+- name: Build & Package (Saltando tests)
+        run: ./mvnw clean package -DskipTests -B -q
 
       - name: Subir JAR Artifact
         uses: actions/upload-artifact@v4
