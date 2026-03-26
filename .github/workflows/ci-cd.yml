@@ -1,8 +1,9 @@
-name: Furent CI/CD -> Railway
+name: "Furent CI/CD -> Railway"
 
 on:
   push:
-    branches: [ main ]
+    branches:
+      - main
 
 jobs:
   build-and-deploy:
@@ -23,12 +24,9 @@ jobs:
         run: chmod +x mvnw
 
       - name: Build & Package (Saltando tests)
-        run: ./mvnw clean package -DskipTests -B -q
-
-      - name: Instalar Railway CLI
-        run: npm install -g @railway/cli
+        run: ./mvnw clean package -DskipTests -B
 
       - name: Deploy a Railway
-        run: railway up --service furent --detach
+        run: npx @railway/cli up --detach -y
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
