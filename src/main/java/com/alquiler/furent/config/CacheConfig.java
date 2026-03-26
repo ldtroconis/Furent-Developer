@@ -38,7 +38,7 @@ public class CacheConfig {
             return new ConcurrentMapCacheManager(
                 "products", "categories", "product-detail", "featured-products", 
                 "tenant-config", "user-profile", "product-count", "notifications", 
-                "reviews", "coupons"
+                "reviews", "coupons", "active-combos", "trending-products", "available-slots"
             );
         }
 

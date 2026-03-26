@@ -36,11 +36,14 @@ public class MongoConfiguration {
 
     @Bean
     public MongoTemplate mongoTemplate() {
-        // Obtenemos el nombre de la base de datos de la URI o usamos el default
-        String databaseName = new ConnectionString(mongoUri).getDatabase();
-        if (databaseName == null) {
+        ConnectionString connectionString = new ConnectionString(mongoUri);
+        String databaseName = connectionString.getDatabase();
+        
+        if (databaseName == null || databaseName.trim().isEmpty()) {
             databaseName = "FurentDataBase";
         }
+        
+        System.out.println(">>> [MONGODB] Conectando a la base de datos: " + databaseName);
         return new MongoTemplate(mongoClient(), databaseName);
     }
 }

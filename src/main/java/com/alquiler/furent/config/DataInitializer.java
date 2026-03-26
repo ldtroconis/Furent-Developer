@@ -56,18 +56,24 @@ public class DataInitializer implements CommandLineRunner {
                 initializePermissions();
                 log.info("=== Permisos RBAC inicializados ===");
 
-                // Create default admin with configurable password
-                userService.createAdmin("admin@furent.com", adminPassword, "Admin", "Furent");
-                log.info("=== Admin inicializado: admin@furent.com ===");
-
+                // Create default admin - INDEPENDIENTE de los productos
+                if (userService.findByEmail("admin@furent.com").isEmpty()) {
+                        userService.createAdmin("admin@furent.com", adminPassword, "Admin", "Furent");
+                        log.info(">>> [SEED] Admin creado por primera vez en esta DB: admin@furent.com");
+                } else {
+                        log.info(">>> [SEED] Admin ya existe en la DB conectada. Saltando creación.");
+                }
+                
                 // Only seed if collections are empty
                 if (categoryRepository.count() == 0) {
                         seedCategories();
-                        log.info("Categorías seed creadas");
+                        log.info(">>> [SEED] Categorías creadas");
                 }
                 if (productRepository.count() == 0) {
                         seedProducts();
-                        log.info("Productos seed creados");
+                        log.info(">>> [SEED] Productos creados");
+                } else {
+                        log.info(">>> [SEED] La base de datos ya tiene productos ({}). Saltando seed.", productRepository.count());
                 }
 
                 // Sync product ratings from actual reviews in DB
