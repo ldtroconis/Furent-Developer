@@ -21,19 +21,7 @@ public class MongoConfiguration {
 
     @Bean
     public MongoClient mongoClient() {
-        String finalUri = mongoUri;
-        // Si la URI no termina en /FurentDataBase la forzamos
-        if (!finalUri.contains("/FurentDataBase")) {
-            if (finalUri.contains("?")) {
-                finalUri = finalUri.replace("?", "/FurentDataBase?");
-            } else {
-                finalUri += "/FurentDataBase";
-            }
-        }
-        
-        System.out.println(">>> [DEBUG] URI de Mongo final: " + finalUri.replaceAll(":.*@", ":****@")); // Ocultar pass en logs
-        
-        ConnectionString connectionString = new ConnectionString(finalUri);
+        ConnectionString connectionString = new ConnectionString(mongoUri);
         MongoClientSettings mongoClientSettings = MongoClientSettings.builder()
             .applyConnectionString(connectionString)
             .applyToSocketSettings(builder -> 
@@ -48,6 +36,7 @@ public class MongoConfiguration {
 
     @Bean
     public MongoTemplate mongoTemplate() {
+        // Forzamos el nombre de la DB pero mantenemos el cliente autenticado en admin
         return new MongoTemplate(mongoClient(), "FurentDataBase");
     }
 }
