@@ -21,7 +21,19 @@ public class MongoConfiguration {
 
     @Bean
     public MongoClient mongoClient() {
-        ConnectionString connectionString = new ConnectionString(mongoUri);
+        String finalUri = mongoUri;
+        // Si la URI no termina en /FurentDataBase la forzamos
+        if (!finalUri.contains("/FurentDataBase")) {
+            if (finalUri.contains("?")) {
+                finalUri = finalUri.replace("?", "/FurentDataBase?");
+            } else {
+                finalUri += "/FurentDataBase";
+            }
+        }
+        
+        System.out.println(">>> [DEBUG] URI de Mongo final: " + finalUri.replaceAll(":.*@", ":****@")); // Ocultar pass en logs
+        
+        ConnectionString connectionString = new ConnectionString(finalUri);
         MongoClientSettings mongoClientSettings = MongoClientSettings.builder()
             .applyConnectionString(connectionString)
             .applyToSocketSettings(builder -> 
@@ -36,14 +48,6 @@ public class MongoConfiguration {
 
     @Bean
     public MongoTemplate mongoTemplate() {
-        ConnectionString connectionString = new ConnectionString(mongoUri);
-        String databaseName = connectionString.getDatabase();
-        
-        if (databaseName == null || databaseName.trim().isEmpty()) {
-            databaseName = "FurentDataBase";
-        }
-        
-        System.out.println(">>> [MONGODB] Conectando a la base de datos: " + databaseName);
-        return new MongoTemplate(mongoClient(), databaseName);
+        return new MongoTemplate(mongoClient(), "FurentDataBase");
     }
 }
