@@ -15,7 +15,8 @@ WORKDIR /app
 
 RUN addgroup -S furent && adduser -S furent -G furent
 
-COPY --from=build /app/target/furent-*.jar app.jar
+# Copiamos solo el JAR final (evitando el .original que genera Maven)
+COPY --from=build /app/target/furent-0.0.1-SNAPSHOT.jar app.jar
 
 RUN mkdir -p /app/uploads && chown -R furent:furent /app
 USER furent
