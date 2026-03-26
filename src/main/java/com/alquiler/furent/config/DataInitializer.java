@@ -61,16 +61,12 @@ public class DataInitializer implements CommandLineRunner {
                 initializePermissions();
                 log.info("=== Permisos RBAC inicializados ===");
 
-                // Create or RESET default admin - FUERZA la contraseña siempre
-                User admin = userService.findByEmail("admin@furent.com").orElse(null);
-                if (admin == null) {
+                // Create default admin if not exists (No lo reseteamos si ya existe para respetar la sync)
+                if (userService.findByEmail("admin@furent.com").isEmpty()) {
                         userService.createAdmin("admin@furent.com", adminPassword, "Admin", "Furent");
-                        log.info(">>> [SEED] Admin CREADO: admin@furent.com / {}", adminPassword);
+                        log.info(">>> [SEED] Admin inicializado: admin@furent.com / {}", adminPassword);
                 } else {
-                        // Forzar contraseña por si acaso la DB es vieja
-                        admin.setPassword(passwordEncoder.encode(adminPassword));
-                        userService.save(admin);
-                        log.info(">>> [SEED] Admin EXISTENTE: Contraseña RESETEADA a la actual.");
+                        log.info(">>> [SEED] Admin ya existe. Omitiendo reset de contraseña.");
                 }
                 
                 // Only seed if collections are empty
