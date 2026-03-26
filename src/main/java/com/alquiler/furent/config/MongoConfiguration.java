@@ -36,7 +36,14 @@ public class MongoConfiguration {
 
     @Bean
     public MongoTemplate mongoTemplate() {
-        // Forzamos el nombre de la DB pero mantenemos el cliente autenticado en admin
-        return new MongoTemplate(mongoClient(), "FurentDataBase");
+        ConnectionString connectionString = new ConnectionString(mongoUri);
+        String dbName = connectionString.getDatabase();
+        
+        // Si no se especifica en la URI, caer a 'FurentDataBase' por defecto
+        if (dbName == null || dbName.isBlank()) {
+            dbName = "FurentDataBase";
+        }
+        
+        return new MongoTemplate(mongoClient(), dbName);
     }
 }

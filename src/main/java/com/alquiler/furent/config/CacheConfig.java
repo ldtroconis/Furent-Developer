@@ -38,7 +38,7 @@ public class CacheConfig {
             return new ConcurrentMapCacheManager(
                 "products", "categories", "product-detail", "featured-products", 
                 "tenant-config", "user-profile", "product-count", "notifications", 
-                "reviews", "coupons", "active-combos", "trending-products", "available-slots"
+                "reviews", "coupons", "active-combos", "combos", "trending-products", "available-slots"
             );
         }
 
@@ -62,6 +62,7 @@ public class CacheConfig {
         cacheConfigurations.put("notifications", defaultConfig.entryTtl(Duration.ofMinutes(2)));
         cacheConfigurations.put("reviews", defaultConfig.entryTtl(Duration.ofMinutes(5)));
         cacheConfigurations.put("coupons", defaultConfig.entryTtl(Duration.ofMinutes(15)));
+        cacheConfigurations.put("combos", defaultConfig.entryTtl(Duration.ofMinutes(10)));
 
         return RedisCacheManager.builder(connectionFactory)
                 .cacheDefaults(defaultConfig)

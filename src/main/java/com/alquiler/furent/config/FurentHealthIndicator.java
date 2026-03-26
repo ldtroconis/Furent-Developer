@@ -26,10 +26,12 @@ public class FurentHealthIndicator implements HealthIndicator {
         try {
             // Verificar conectividad MongoDB
             long collections = mongoTemplate.getCollectionNames().size();
+            long users = mongoTemplate.getCollection("usuarios").countDocuments();
 
             return Health.up()
                     .withDetail("mongodb", "connected")
                     .withDetail("collections", collections)
+                    .withDetail("users", users)
                     .withDetail("service", "furent-backend")
                     .withDetail("version", "2.0.0")
                     .build();
