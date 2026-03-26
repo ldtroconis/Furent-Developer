@@ -1,0 +1,22 @@
+[INFO] Scanning for projects...
+[ERROR] [ERROR] Some problems were encountered while processing the POMs:
+[ERROR] 'dependencies.dependency.version' for org.springframework.boot:spring-boot-starter-webmvc:jar is missing. @ line 50, column 15
+[ERROR] 'dependencies.dependency.version' for org.springframework.boot:spring-boot-starter-graphql-test:jar is missing. @ line 100, column 15
+[ERROR] 'dependencies.dependency.version' for org.springframework.boot:spring-boot-starter-security-test:jar is missing. @ line 105, column 15
+[ERROR] 'dependencies.dependency.version' for org.springframework.boot:spring-boot-starter-thymeleaf-test:jar is missing. @ line 110, column 15
+[ERROR] 'dependencies.dependency.version' for org.springframework.boot:spring-boot-starter-webmvc-test:jar is missing. @ line 115, column 15
+ @ 
+[ERROR] The build could not read 1 project -> [Help 1]
+[ERROR]   
+[ERROR]   The project com.example:furent:0.0.1-SNAPSHOT (C:\Users\Ldtro\Documents\DEV\Furent-Developer\pom.xml) has 5 errors
+[ERROR]     'dependencies.dependency.version' for org.springframework.boot:spring-boot-starter-webmvc:jar is missing. @ line 50, column 15
+[ERROR]     'dependencies.dependency.version' for org.springframework.boot:spring-boot-starter-graphql-test:jar is missing. @ line 100, column 15
+[ERROR]     'dependencies.dependency.version' for org.springframework.boot:spring-boot-starter-security-test:jar is missing. @ line 105, column 15
+[ERROR]     'dependencies.dependency.version' for org.springframework.boot:spring-boot-starter-thymeleaf-test:jar is missing. @ line 110, column 15
+[ERROR]     'dependencies.dependency.version' for org.springframework.boot:spring-boot-starter-webmvc-test:jar is missing. @ line 115, column 15
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/ProjectBuildingException
