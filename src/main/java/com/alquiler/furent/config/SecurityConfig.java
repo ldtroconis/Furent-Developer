@@ -147,15 +147,6 @@ public class SecurityConfig {
                                 .includeSubDomains(true)
                                 .maxAgeInSeconds(31536000)
                                 .preload(true))
-                        .contentSecurityPolicy(csp -> csp
-                                .policyDirectives(
-                                        "default-src 'self'; " +
-                                        "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.tailwindcss.com https://cdn.jsdelivr.net https://unpkg.com https://code.jquery.com https://cdn.datatables.net https://cdnjs.cloudflare.com; " +
-                                        "style-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com https://fonts.googleapis.com https://cdn.jsdelivr.net https://unpkg.com https://cdn.datatables.net https://cdnjs.cloudflare.com; " +
-                                        "font-src 'self' data: https://fonts.gstatic.com; " +
-                                        "img-src * data: blob: https:; " +
-                                        "connect-src 'self' https://cdn.jsdelivr.net https://api.payulatam.com https://*.payulatam.com; " +
-                                        "frame-src https://checkout.payulatam.com;"))
                         .frameOptions(frame -> frame.deny()));
 
         return http.build();
