@@ -15,7 +15,7 @@ WORKDIR /app
 
 RUN addgroup -S furent && adduser -S furent -G furent
 
-COPY --from=build /app/target/*.jar app.jar
+COPY --from=build /app/target/furent-*.jar app.jar
 
 RUN mkdir -p /app/uploads && chown -R furent:furent /app
 USER furent
