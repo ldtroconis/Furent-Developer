@@ -10,8 +10,10 @@ import com.alquiler.furent.repository.ProductRepository;
 import com.alquiler.furent.repository.ReviewRepository;
 import com.alquiler.furent.service.TenantService;
 import com.alquiler.furent.service.UserService;
+import com.alquiler.furent.model.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
@@ -30,6 +32,7 @@ public class DataInitializer implements CommandLineRunner {
         private final UserService userService;
         private final TenantService tenantService;
         private final PermissionRepository permissionRepository;
+        private final PasswordEncoder passwordEncoder;
 
         @Value("${furent.admin.password:admin123}")
         private String adminPassword;
@@ -37,13 +40,15 @@ public class DataInitializer implements CommandLineRunner {
         public DataInitializer(ProductRepository productRepository, CategoryRepository categoryRepository,
                         ReviewRepository reviewRepository,
                         UserService userService, TenantService tenantService,
-                        PermissionRepository permissionRepository) {
+                        PermissionRepository permissionRepository,
+                        PasswordEncoder passwordEncoder) {
                 this.productRepository = productRepository;
                 this.categoryRepository = categoryRepository;
                 this.reviewRepository = reviewRepository;
                 this.userService = userService;
                 this.tenantService = tenantService;
                 this.permissionRepository = permissionRepository;
+                this.passwordEncoder = passwordEncoder;
         }
 
         @Override
@@ -56,12 +61,16 @@ public class DataInitializer implements CommandLineRunner {
                 initializePermissions();
                 log.info("=== Permisos RBAC inicializados ===");
 
-                // Create default admin - INDEPENDIENTE de los productos
-                if (userService.findByEmail("admin@furent.com").isEmpty()) {
+                // Create or RESET default admin - FUERZA la contraseña siempre
+                User admin = userService.findByEmail("admin@furent.com").orElse(null);
+                if (admin == null) {
                         userService.createAdmin("admin@furent.com", adminPassword, "Admin", "Furent");
-                        log.info(">>> [SEED] Admin creado por primera vez en esta DB: admin@furent.com");
+                        log.info(">>> [SEED] Admin CREADO: admin@furent.com / {}", adminPassword);
                 } else {
-                        log.info(">>> [SEED] Admin ya existe en la DB conectada. Saltando creación.");
+                        // Forzar contraseña por si acaso la DB es vieja
+                        admin.setPassword(passwordEncoder.encode(adminPassword));
+                        userService.save(admin);
+                        log.info(">>> [SEED] Admin EXISTENTE: Contraseña RESETEADA a la actual.");
                 }
                 
                 // Only seed if collections are empty
