@@ -15,25 +15,34 @@ import org.springframework.data.redis.serializer.StringRedisSerializer;
 import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
+import org.springframework.cache.concurrent.ConcurrentMapCacheManager;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
- * Configuración de cache con Redis.
- * Define TTLs específicos por dominio para optimizar rendimiento y frescura de datos.
- *
- * Caches definidos:
- * - products: 10 min (datos consultados frecuentemente)
- * - categories: 30 min (datos que cambian poco)
- * - product-detail: 5 min (detalle individual)
- * - featured-products: 10 min (productos destacados)
- * - tenant-config: 15 min (configuración de tenant)
+ * Configuración de cache híbrida (Redis + Memoria).
+ * Si Redis no está disponible, la aplicación arranca usando memoria local.
  */
 @Configuration
 @EnableCaching
 @ConditionalOnProperty(name = "furent.features.cache-enabled", havingValue = "true", matchIfMissing = true)
 public class CacheConfig {
 
+    private static final Logger log = LoggerFactory.getLogger(CacheConfig.class);
+
     @Bean
-    public CacheManager cacheManager(RedisConnectionFactory connectionFactory) {
+    public CacheManager cacheManager(@Autowired(required = false) RedisConnectionFactory connectionFactory) {
+        if (connectionFactory == null) {
+            log.warn(">>> REDIS NO DETECTADO: Usando caché en memoria (ConcurrentMapCacheManager). La app arrancará de todos modos.");
+            return new ConcurrentMapCacheManager(
+                "products", "categories", "product-detail", "featured-products", 
+                "tenant-config", "user-profile", "product-count", "notifications", 
+                "reviews", "coupons"
+            );
+        }
+
+        log.info(">>> REDIS DETECTADO: Configurando RedisCacheManager con TTLs personalizados.");
         RedisCacheConfiguration defaultConfig = RedisCacheConfiguration.defaultCacheConfig()
                 .entryTtl(Duration.ofMinutes(10))
                 .serializeKeysWith(
